@@ -22,21 +22,33 @@ contract RRC7755InboxTest is BaseTest {
         bytes[] attributes;
     }
 
+    EntryPoint entryPoint;
     RRC7755Inbox inbox;
     MockPrecheck precheck;
     MockTarget target;
-    EntryPoint entryPoint;
+    Paymaster paymaster;
 
     event PaymasterDeployed(address indexed sender, address indexed paymaster);
     event CallFulfilled(bytes32 indexed requestHash, address indexed fulfilledBy);
 
     function setUp() public {
         entryPoint = new EntryPoint();
-        inbox = new RRC7755Inbox(address(entryPoint));
+        paymaster = new Paymaster(address(entryPoint));
+        inbox = new RRC7755Inbox(address(paymaster));
+        paymaster.initialize(address(inbox));
         precheck = new MockPrecheck();
         target = new MockTarget();
         approveAddr = address(inbox);
         _setUp();
+    }
+
+    function test_deployment_reverts_zeroAddress() external {
+        vm.expectRevert(RRC7755Inbox.ZeroAddress.selector);
+        new RRC7755Inbox(address(0));
+    }
+
+    function test_deployment_setsPaymaster() external view {
+        assertEq(address(inbox.PAYMASTER()), address(paymaster));
     }
 
     function test_fulfill_reverts_userOp() external {
@@ -151,6 +163,49 @@ contract RRC7755InboxTest is BaseTest {
         vm.expectEmit(true, true, false, false);
         emit CallFulfilled({requestHash: m.messageId, fulfilledBy: FILLER});
         inbox.fulfill(m.sourceChain, m.sender, m.payload, m.attributes, FILLER);
+    }
+
+    function test_fulfill_paymasterRequest(uint256 amount) external fundAlice(amount) {
+        vm.startPrank(ALICE);
+        mockErc20.approve(address(paymaster), amount);
+        paymaster.magicSpendDeposit(address(mockErc20), amount);
+        vm.stopPrank();
+
+        TestMessage memory m = _initMessage(false, false);
+        bytes[] memory attributes = new bytes[](1);
+        attributes[0] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, address(mockErc20), amount);
+
+        vm.prank(ALICE);
+        inbox.fulfill(m.sourceChain, m.sender, m.payload, attributes, FILLER);
+
+        assertEq(mockErc20.balanceOf(address(inbox)), amount);
+    }
+
+    function test_fulfill_reverts_ifCallDesignatesPaymaster() external {
+        TestMessage memory m = _initMessage(false, false);
+        Call[] memory calls = new Call[](1);
+        calls[0] = Call({to: address(paymaster).addressToBytes32(), data: "", value: 0});
+
+        vm.prank(FILLER);
+        vm.expectRevert(RRC7755Inbox.CannotCallPaymaster.selector);
+        inbox.fulfill(m.sourceChain, m.sender, abi.encode(calls), m.attributes, FILLER);
+    }
+
+    function test_storeReceipt_reverts_invalidCaller() external {
+        vm.expectRevert(RRC7755Inbox.InvalidCaller.selector);
+        inbox.storeReceipt(bytes32(0), FILLER);
+    }
+
+    function test_storeReceipt_storesFulfillmentInfo() external {
+        TestMessage memory m = _initMessage(false, false);
+
+        vm.prank(address(paymaster));
+        inbox.storeReceipt(m.messageId, FILLER);
+
+        RRC7755Inbox.FulfillmentInfo memory info = inbox.getFulfillmentInfo(m.messageId);
+
+        assertEq(info.fulfiller, FILLER);
+        assertEq(info.timestamp, block.timestamp);
     }
 
     function _initMessage(bool isPrecheck, bool isUserOp) private view returns (TestMessage memory) {

@@ -6,6 +6,7 @@ import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
+import {IInbox} from "./interfaces/IInbox.sol";
 import {IUserOpPrecheck} from "./interfaces/IUserOpPrecheck.sol";
 import {GlobalTypes} from "./libraries/GlobalTypes.sol";
 
@@ -15,7 +16,7 @@ import {GlobalTypes} from "./libraries/GlobalTypes.sol";
 ///
 /// @notice This contract is used as a hook for fulfillers to provide funds for requested transactions when the
 ///         cross-chain call(s) are ERC-4337 User Operations
-abstract contract Paymaster is IPaymaster {
+contract Paymaster is IPaymaster {
     using SafeTransferLib for address;
     using GlobalTypes for address;
     using GlobalTypes for bytes32;
@@ -41,6 +42,9 @@ abstract contract Paymaster is IPaymaster {
 
     /// @notice The ERC-4337 EntryPoint contract
     IEntryPoint public immutable ENTRY_POINT;
+
+    /// @notice The RRC-7755 Inbox contract
+    IInbox public inbox;
 
     /// @notice The address of the previous fulfiller to have sponsored a User Operation. If this is the zero address,
     ///         `totalTrackedGasBalance` MUST exactly equal ENTRY_POINT.balanceOf(address(this)). If this is not the
@@ -103,6 +107,12 @@ abstract contract Paymaster is IPaymaster {
     /// @param actual   The received `msg.value`
     error InvalidValue(uint256 expected, uint256 actual);
 
+    /// @notice This error is thrown in `fulfillerWithdraw` when the caller is not the RRC-7755 Inbox contract
+    error InvalidCaller();
+
+    /// @notice This error is thrown in `initialize` when the inbox address is already set
+    error AlreadyInitialized();
+
     /// @notice This event is emitted when a fulfiller's claim address is set
     ///
     /// @param fulfiller    The address of the fulfiller
@@ -127,13 +137,13 @@ abstract contract Paymaster is IPaymaster {
     ///
     /// @custom:reverts If the EntryPoint contract is the zero address
     ///
-    /// @param _entryPoint The EntryPoint contract to use for the paymaster
-    constructor(address _entryPoint) payable {
-        if (address(_entryPoint) == address(0)) {
+    /// @param entryPoint The EntryPoint contract to use for the paymaster
+    constructor(address entryPoint) payable {
+        if (address(entryPoint) == address(0)) {
             revert ZeroAddress();
         }
 
-        ENTRY_POINT = IEntryPoint(_entryPoint);
+        ENTRY_POINT = IEntryPoint(entryPoint);
     }
 
     /// @dev A modifier that ensures the caller is the EntryPoint contract
@@ -147,6 +157,23 @@ abstract contract Paymaster is IPaymaster {
     /// @notice A receive function that allows fulfillers to deposit eth into the paymaster
     receive() external payable {
         _depositEth();
+    }
+
+    /// @notice Initializes the paymaster with the RRC-7755 Inbox contract
+    ///
+    /// @custom:reverts If the inbox address is the zero address
+    /// @custom:reverts If the paymaster is already initialized
+    ///
+    /// @param inbox_ The address of the RRC-7755 Inbox contract
+    function initialize(address inbox_) external {
+        if (inbox_ == address(0)) {
+            revert ZeroAddress();
+        }
+        if (address(inbox) != address(0)) {
+            revert AlreadyInitialized();
+        }
+
+        inbox = IInbox(inbox_);
     }
 
     /// @notice Deposits eth or any ERC20 token for magic spend support
@@ -184,33 +211,32 @@ abstract contract Paymaster is IPaymaster {
         _convertEthForGas(msg.sender, amount);
     }
 
-    /// @notice A function that allows a fulfiller to withdraw eth from the paymaster
+    /// @notice A function that allows a fulfiller to withdraw eth or ERC20 tokens from the paymaster
     ///
     /// @custom:reverts If the withdraw address is the zero address
     /// @custom:reverts If caller's magic spend balance is insufficient
     ///
     /// @param token           Token address to withdraw
-    /// @param withdrawAddress The address to withdraw the eth to
-    /// @param amount          The amount of eth to withdraw
+    /// @param withdrawAddress The address to withdraw the eth or tokens to
+    /// @param amount          The amount of eth or tokens to withdraw
     function withdrawTo(address token, address withdrawAddress, uint256 amount) external {
-        bytes32 tokenBytes32 = token.addressToBytes32();
-        if (withdrawAddress == address(0)) {
-            revert ZeroAddress();
+        _fulfillerWithdraw(msg.sender, token, withdrawAddress, amount);
+    }
+
+    /// @notice A function that allows the RRC-7755 Inbox contract to withdraw eth or ERC20 tokens from the paymaster
+    ///
+    /// @custom:reverts If the caller is not the RRC-7755 Inbox contract
+    /// @custom:reverts If fulfiller's magic spend balance is insufficient
+    ///
+    /// @param fulfiller The address of the fulfiller
+    /// @param token     The token address to withdraw
+    /// @param amount    The amount of eth or tokens to withdraw
+    function fulfillerWithdraw(address fulfiller, address token, uint256 amount) external {
+        if (msg.sender != address(inbox)) {
+            revert InvalidCaller();
         }
 
-        uint256 balance = _magicSpendBalance[msg.sender][tokenBytes32];
-
-        if (amount > balance) {
-            revert InsufficientMagicSpendBalance(msg.sender, balance, amount);
-        }
-
-        unchecked {
-            _magicSpendBalance[msg.sender][tokenBytes32] -= amount;
-        }
-
-        _sendTokens({token: token, to: withdrawAddress, amount: amount});
-
-        emit MagicSpendWithdrawal(msg.sender, withdrawAddress, amount);
+        _fulfillerWithdraw(fulfiller, token, msg.sender, amount);
     }
 
     /// @notice A function that allows a fulfiller to withdraw gas eth from the EntryPoint
@@ -333,7 +359,7 @@ abstract contract Paymaster is IPaymaster {
         (Context memory ctx) = abi.decode(context, (Context));
 
         if (mode == PostOpMode.opSucceeded) {
-            _setFulfillmentInfo(ctx.userOpHash, ctx.claimAddress);
+            inbox.storeReceipt(ctx.userOpHash, ctx.claimAddress);
         }
 
         // If the sender's withdrawable balance is not equal to the eth amount, it means that the sender's balance was
@@ -372,11 +398,35 @@ abstract contract Paymaster is IPaymaster {
         return _magicSpendBalance[account][tokenBytes32];
     }
 
-    /// @notice A function that sets the fulfillment info for a User Operation
+    /// @notice A function that allows a fulfiller to withdraw eth or ERC20 tokens from the paymaster
     ///
-    /// @param requestHash The hash of the user operation
-    /// @param fulfiller   The claim address of the fulfiller
-    function _setFulfillmentInfo(bytes32 requestHash, address fulfiller) internal virtual;
+    /// @custom:reverts If the withdraw address is the zero address
+    /// @custom:reverts If fulfiller's magic spend balance is insufficient
+    ///
+    /// @param fulfiller       The address of the fulfiller
+    /// @param token           Token address to withdraw
+    /// @param withdrawAddress The address to withdraw the tokens to
+    /// @param amount          The amount of eth or tokens to withdraw
+    function _fulfillerWithdraw(address fulfiller, address token, address withdrawAddress, uint256 amount) private {
+        bytes32 tokenBytes32 = token.addressToBytes32();
+        if (withdrawAddress == address(0)) {
+            revert ZeroAddress();
+        }
+
+        uint256 balance = _magicSpendBalance[fulfiller][tokenBytes32];
+
+        if (amount > balance) {
+            revert InsufficientMagicSpendBalance(fulfiller, balance, amount);
+        }
+
+        unchecked {
+            _magicSpendBalance[fulfiller][tokenBytes32] -= amount;
+        }
+
+        _sendTokens({token: token, to: withdrawAddress, amount: amount});
+
+        emit MagicSpendWithdrawal(fulfiller, withdrawAddress, amount);
+    }
 
     /// @notice A function that deposits eth into the paymaster
     function _depositEth() private {

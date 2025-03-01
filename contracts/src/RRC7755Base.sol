@@ -20,6 +20,9 @@ contract RRC7755Base {
     /// @notice The selector for the precheck attribute
     bytes4 internal constant _PRECHECK_ATTRIBUTE_SELECTOR = 0xbef86027; // precheck(bytes32)
 
+    /// @notice The selector for requesting magic spend funds for call execution
+    bytes4 internal constant _MAGIC_SPEND_REQUEST_SELECTOR = 0x92041278; // magicSpendRequest(address,uint256)
+
     /// @notice This error is thrown if an attribute is not found in the attributes array
     ///
     /// @param selector The selector of the attribute that was not found

@@ -13,6 +13,7 @@ contract HelperConfig is Script {
 
     struct NetworkConfig {
         uint256 chainId;
+        address paymaster;
         address opStackOutbox;
         address arbitrumOutbox;
         address hashiOutbox;
@@ -53,6 +54,7 @@ contract HelperConfig is Script {
     function getArbitrumSepoliaConfig() public view returns (NetworkConfig memory) {
         return NetworkConfig({
             chainId: ARBITRUM_SEPOLIA_CHAIN_ID,
+            paymaster: addresses.readAddress(".arbitrumSepolia.Paymaster"),
             opStackOutbox: addresses.readAddress(".arbitrumSepolia.RRC7755OutboxToOPStack"),
             arbitrumOutbox: address(0),
             hashiOutbox: addresses.readAddress(".arbitrumSepolia.RRC7755OutboxToHashi"),
@@ -67,6 +69,7 @@ contract HelperConfig is Script {
     function getBaseSepoliaConfig() public view returns (NetworkConfig memory) {
         return NetworkConfig({
             chainId: BASE_SEPOLIA_CHAIN_ID,
+            paymaster: addresses.readAddress(".baseSepolia.Paymaster"),
             opStackOutbox: addresses.readAddress(".baseSepolia.RRC7755OutboxToOPStack"),
             arbitrumOutbox: addresses.readAddress(".baseSepolia.RRC7755OutboxToArbitrum"),
             hashiOutbox: addresses.readAddress(".baseSepolia.RRC7755OutboxToHashi"),
@@ -81,6 +84,7 @@ contract HelperConfig is Script {
     function getOptimismSepoliaConfig() public view returns (NetworkConfig memory) {
         return NetworkConfig({
             chainId: OPTIMISM_SEPOLIA_CHAIN_ID,
+            paymaster: addresses.readAddress(".optimismSepolia.Paymaster"),
             opStackOutbox: addresses.readAddress(".optimismSepolia.RRC7755OutboxToOPStack"),
             arbitrumOutbox: addresses.readAddress(".optimismSepolia.RRC7755OutboxToArbitrum"),
             hashiOutbox: addresses.readAddress(".optimismSepolia.RRC7755OutboxToHashi"),
@@ -97,6 +101,7 @@ contract HelperConfig is Script {
 
         return NetworkConfig({
             chainId: LOCAL_CHAIN_ID,
+            paymaster: address(0),
             opStackOutbox: address(0),
             arbitrumOutbox: address(0),
             hashiOutbox: address(0),
