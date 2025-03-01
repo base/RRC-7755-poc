@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 
+import {IInbox} from "./interfaces/IInbox.sol";
 import {IPrecheckContract} from "./interfaces/IPrecheckContract.sol";
 import {GlobalTypes} from "./libraries/GlobalTypes.sol";
 import {RRC7755Base} from "./RRC7755Base.sol";
@@ -14,7 +15,7 @@ import {Paymaster} from "./Paymaster.sol";
 ///
 /// @notice An inbox contract within RRC-7755. This contract's sole purpose is to route requested transactions on
 ///         destination chains and store record of their fulfillment.
-contract RRC7755Inbox is RRC7755Base, Paymaster {
+contract RRC7755Inbox is RRC7755Base, IInbox {
     using GlobalTypes for bytes32;
     using GlobalTypes for address;
 
@@ -32,9 +33,21 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
         address fulfiller;
     }
 
+    /// @notice A struct that contains the token address and amount to be withdrawn. Used during call execution to
+    ///         request funds from the paymaster
+    struct PaymentRequest {
+        /// @dev The token address to withdraw
+        address token;
+        /// @dev The amount of eth or tokens to withdraw
+        uint256 amount;
+    }
+
     /// @notice Main storage location used as the base for the fulfillmentInfo mapping following EIP-7201.
     ///         keccak256(abi.encode(uint256(keccak256(bytes("RRC-7755"))) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant _MAIN_STORAGE_LOCATION = 0x40f2eef6aad3cb0e74d3b59b45d3d5f2d5fc8dc382e739617b693cdd4bc30c00;
+
+    /// @notice The address of the associated paymaster contract
+    Paymaster public immutable PAYMASTER;
 
     /// @notice Event emitted when a cross chain call is fulfilled
     ///
@@ -49,10 +62,22 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
     /// @notice This error is thrown when a User Operation is detected during an `executeMessages` call
     error UserOp();
 
-    /// @dev Stores the address of the ERC-4337 EntryPoint contract
+    /// @notice This error is thrown if a fulfiller submits a `msg.value` greater than the total value needed for all
+    ///         the calls
     ///
-    /// @param entryPoint The address of the ERC-4337 EntryPoint contract
-    constructor(address entryPoint) Paymaster(entryPoint) {}
+    /// @param expected The total value needed for all the calls
+    /// @param actual   The received `msg.value`
+    error InvalidValue(uint256 expected, uint256 actual);
+
+    /// @notice This error is thrown if an account attempts to cancel a request that did not originate from that account
+    error InvalidCaller();
+
+    /// @dev Stores the address of the associated paymaster contract
+    ///
+    /// @param paymaster The address of the associated paymaster contract
+    constructor(address paymaster) {
+        PAYMASTER = Paymaster(payable(paymaster));
+    }
 
     /// @notice Delivery of a message sent from another chain.
     ///
@@ -68,10 +93,14 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
         bytes[] calldata attributes,
         address fulfiller
     ) external payable {
-        (bool isUserOp, address precheckContract) = _processAttributes(attributes);
+        (bool isUserOp, address precheckContract, PaymentRequest memory paymentRequest) = _processAttributes(attributes);
 
         if (isUserOp) {
             revert UserOp();
+        }
+
+        if (paymentRequest.token != address(0)) {
+            PAYMASTER.fulfillerWithdraw(msg.sender, paymentRequest.token, paymentRequest.amount);
         }
 
         bytes32 messageId = getRequestId(
@@ -87,6 +116,21 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
         _setFulfillmentInfo(messageId, fulfiller);
 
         _sendCallsAndValidateMsgValue(payload);
+    }
+
+    /// @notice A function that allows the paymaster to store the fulfillment info for a passed in call hash that
+    ///         succeeds
+    ///
+    /// @custom:reverts If the caller is not the paymaster
+    ///
+    /// @param messageId A keccak256 hash of a 7755 request
+    /// @param fulfiller The address of the fulfiller
+    function storeReceipt(bytes32 messageId, address fulfiller) external {
+        if (msg.sender != address(PAYMASTER)) {
+            revert InvalidCaller();
+        }
+
+        _setFulfillmentInfo(messageId, fulfiller);
     }
 
     /// @notice Returns the stored fulfillment info for a passed in call hash
@@ -117,6 +161,17 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
     }
 
     function _call(address to, bytes memory data, uint256 value) private {
+        // Prevent calls to this contract to avoid reentrancy and self-draining
+        if (to == address(this)) {
+            revert("Cannot call self");
+        }
+
+        // Prevent calls to the EntryPoint to protect paymaster funds
+        if (to == address(PAYMASTER)) {
+            revert("Cannot call Paymaster directly");
+        }
+
+        // Execute the call with the specified value
         (bool success, bytes memory result) = to.call{value: value}(data);
         if (!success) {
             assembly ("memory-safe") {
@@ -125,7 +180,7 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
         }
     }
 
-    function _setFulfillmentInfo(bytes32 requestHash, address fulfiller) internal override {
+    function _setFulfillmentInfo(bytes32 requestHash, address fulfiller) private {
         FulfillmentInfo memory fulfillmentInfo =
             FulfillmentInfo({timestamp: uint96(block.timestamp), fulfiller: fulfiller});
         MainStorage storage $ = _getMainStorage();
@@ -153,17 +208,25 @@ contract RRC7755Inbox is RRC7755Base, Paymaster {
         return $.fulfillmentInfo[requestHash];
     }
 
-    function _processAttributes(bytes[] calldata attributes) private pure returns (bool, address) {
+    function _processAttributes(bytes[] calldata attributes)
+        private
+        pure
+        returns (bool, address, PaymentRequest memory)
+    {
         bool isUserOp = attributes.length == 0;
         bytes32 precheckContract;
+        PaymentRequest memory paymentRequest;
 
         for (uint256 i; i < attributes.length; i++) {
             if (bytes4(attributes[i]) == _PRECHECK_ATTRIBUTE_SELECTOR) {
                 precheckContract = abi.decode(attributes[i][4:], (bytes32));
+            } else if (bytes4(attributes[i]) == _MAGIC_SPEND_REQUEST_SELECTOR) {
+                (address token, uint256 amount) = abi.decode(attributes[i][4:], (address, uint256));
+                paymentRequest = PaymentRequest({token: token, amount: amount});
             }
         }
 
-        return (isUserOp, precheckContract.bytes32ToAddress());
+        return (isUserOp, precheckContract.bytes32ToAddress(), paymentRequest);
     }
 
     function _getMainStorage() private pure returns (MainStorage storage $) {

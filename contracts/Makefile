@@ -6,6 +6,7 @@ ACCOUNT=testnet-admin
 ARBITRUM_REQUEST_HASH = 0xd2a7d400b8bf591dfa337aced6d4bab04e979ef9d183c9fc30bc1c6c0ce552aa
 FULFILLER_ADDRESS = 0x23214A0864FC0014CAb6030267738F01AFfdd547
 MOCK_VERIFIER_ADDRESS = 0xdac62f96404AB882F5a61CFCaFb0C470a19FC514
+MOCK_TOKEN_ADDRESS = 0x8c9924434AfFc441BD53E30909402A5C15283aE6
 
 ARBITRUM_RPC = $(ARBITRUM_SEPOLIA_RPC)
 OPTIMISM_RPC = $(OPTIMISM_SEPOLIA_RPC)
@@ -36,6 +37,12 @@ deploy-mock-account:
 	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockAccount.sol:MockAccount --broadcast -vvvv
 	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockAccount.sol:MockAccount --broadcast -vvvv
 
+.PHONY: deploy-mock-token
+deploy-mock-token:
+	forge create --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
+	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
+	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
+
 .PHONY: read-mock
 read-mock:
 	cast call $(MOCK_VERIFIER_ADDRESS) "getFulfillmentInfo(bytes32)(uint96,address)" $(ARBITRUM_REQUEST_HASH) --rpc-url $(ARBITRUM_RPC)
@@ -43,6 +50,12 @@ read-mock:
 .PHONY: set-mock
 set-mock:
 	cast send $(MOCK_VERIFIER_ADDRESS) "storeFulfillmentInfo(bytes32,address)" $(ARBITRUM_REQUEST_HASH) $(FULFILLER_ADDRESS) --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT)
+
+.PHONY: mint-mock-token
+mint-mock-token:
+	cast send $(MOCK_TOKEN_ADDRESS) "mint(address,uint256)" 0x8C1a617BdB47342F9C17Ac8750E0b070c372C721 1000000000000000000000000 --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT)
+	cast send $(MOCK_TOKEN_ADDRESS) "mint(address,uint256)" 0x8C1a617BdB47342F9C17Ac8750E0b070c372C721 1000000000000000000000000 --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT)
+	cast send $(MOCK_TOKEN_ADDRESS) "mint(address,uint256)" 0x8C1a617BdB47342F9C17Ac8750E0b070c372C721 1000000000000000000000000 --rpc-url $(BASE_RPC) --account $(ACCOUNT)
 
 .PHONY: deploy
 deploy:

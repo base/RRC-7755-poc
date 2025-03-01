@@ -467,7 +467,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     }
 
     function _isOptionalAttribute(bytes4 selector) internal pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR;
+        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _MAGIC_SPEND_REQUEST_SELECTOR;
     }
 
     function _handleRewardAttribute(bytes calldata attribute, address requester, uint256 value) internal {
