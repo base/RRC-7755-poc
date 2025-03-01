@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
+import {ReentrancyGuard} from "solady/utils/ReentrancyGuard.sol";
 
 import {IInbox} from "./interfaces/IInbox.sol";
 import {IPrecheckContract} from "./interfaces/IPrecheckContract.sol";
@@ -15,7 +16,7 @@ import {Paymaster} from "./Paymaster.sol";
 ///
 /// @notice An inbox contract within RRC-7755. This contract's sole purpose is to route requested transactions on
 ///         destination chains and store record of their fulfillment.
-contract RRC7755Inbox is RRC7755Base, IInbox {
+contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
     using GlobalTypes for bytes32;
     using GlobalTypes for address;
 
@@ -72,10 +73,22 @@ contract RRC7755Inbox is RRC7755Base, IInbox {
     /// @notice This error is thrown if an account attempts to cancel a request that did not originate from that account
     error InvalidCaller();
 
+    /// @notice This error is thrown when an address is the zero address
+    error ZeroAddress();
+
+    /// @notice This error is thrown when an address attempts to call the paymaster contract
+    error CannotCallPaymaster();
+
     /// @dev Stores the address of the associated paymaster contract
+    ///
+    /// @custom:reverts If the paymaster address is the zero address
     ///
     /// @param paymaster The address of the associated paymaster contract
     constructor(address paymaster) {
+        if (paymaster == address(0)) {
+            revert ZeroAddress();
+        }
+
         PAYMASTER = Paymaster(payable(paymaster));
     }
 
@@ -92,7 +105,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox {
         bytes calldata payload,
         bytes[] calldata attributes,
         address fulfiller
-    ) external payable {
+    ) external payable nonReentrant {
         (bool isUserOp, address precheckContract, PaymentRequest memory paymentRequest) = _processAttributes(attributes);
 
         if (isUserOp) {
@@ -161,14 +174,9 @@ contract RRC7755Inbox is RRC7755Base, IInbox {
     }
 
     function _call(address to, bytes memory data, uint256 value) private {
-        // Prevent calls to this contract to avoid reentrancy and self-draining
-        if (to == address(this)) {
-            revert("Cannot call self");
-        }
-
         // Prevent calls to the EntryPoint to protect paymaster funds
         if (to == address(PAYMASTER)) {
-            revert("Cannot call Paymaster directly");
+            revert CannotCallPaymaster();
         }
 
         // Execute the call with the specified value
