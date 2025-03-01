@@ -7,6 +7,7 @@ import {MultiChain} from "./MultiChain.sol";
 import {RRC7755OutboxToArbitrum} from "../src/outboxes/RRC7755OutboxToArbitrum.sol";
 import {RRC7755OutboxToOPStack} from "../src/outboxes/RRC7755OutboxToOPStack.sol";
 import {RRC7755OutboxToHashi} from "../src/outboxes/RRC7755OutboxToHashi.sol";
+import {Paymaster} from "../src/Paymaster.sol";
 import {RRC7755Inbox} from "../src/RRC7755Inbox.sol";
 
 contract Deploy is MultiChain {
@@ -20,7 +21,14 @@ contract Deploy is MultiChain {
 
             vm.startBroadcast();
 
-            out = _record(out, address(new RRC7755Inbox(ENTRY_POINT)), "RRC7755Inbox");
+            Paymaster paymaster = new Paymaster(ENTRY_POINT);
+            out = _record(out, address(paymaster), "Paymaster");
+
+            RRC7755Inbox inbox = new RRC7755Inbox(address(paymaster));
+            out = _record(out, address(inbox), "RRC7755Inbox");
+
+            paymaster.initialize(address(inbox));
+
             if (block.chainid != 421614) {
                 out = _record(out, address(new RRC7755OutboxToArbitrum()), "RRC7755OutboxToArbitrum");
             }

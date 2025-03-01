@@ -47,7 +47,7 @@ contract RRC7755InboxTest is BaseTest {
         new RRC7755Inbox(address(0));
     }
 
-    function test_deployment_setsPaymaster() external {
+    function test_deployment_setsPaymaster() external view {
         assertEq(address(inbox.PAYMASTER()), address(paymaster));
     }
 

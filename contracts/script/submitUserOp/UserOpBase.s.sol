@@ -42,18 +42,18 @@ contract UserOpBase is StandardBase {
             sender: dstConfig.smartAccount,
             nonce: entryPointNonce,
             initCode: "",
-            callData: abi.encodeWithSelector(MockAccount.executeUserOp.selector, address(dstConfig.inbox), ethAddress),
+            callData: abi.encodeWithSelector(MockAccount.executeUserOp.selector, address(dstConfig.paymaster), ethAddress),
             accountGasLimits: bytes32(abi.encodePacked(verificationGasLimit, callGasLimit)),
             preVerificationGas: 100000,
             gasFees: bytes32(abi.encodePacked(maxPriorityFeePerGas, maxFeePerGas)),
-            paymasterAndData: _encodePaymasterAndData(dstConfig.inbox, attributes, ethAddress),
+            paymasterAndData: _encodePaymasterAndData(dstConfig.paymaster, attributes, ethAddress),
             signature: ""
         });
 
         return (destinationChain, receiver, abi.encode(userOp), new bytes[](0));
     }
 
-    function _encodePaymasterAndData(address inbox, bytes[] memory attributes, address ethAddress)
+    function _encodePaymasterAndData(address paymaster, bytes[] memory attributes, address ethAddress)
         private
         pure
         returns (bytes memory)
@@ -63,7 +63,7 @@ contract UserOpBase is StandardBase {
         uint128 paymasterVerificationGasLimit = 100000;
         uint128 paymasterPostOpGasLimit = 100000;
         return abi.encodePacked(
-            inbox,
+            paymaster,
             paymasterVerificationGasLimit,
             paymasterPostOpGasLimit,
             abi.encode(ethAddress, ethAmount, precheck, attributes)

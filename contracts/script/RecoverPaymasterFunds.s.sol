@@ -19,7 +19,7 @@ contract RecoverPaymasterFunds is MultiChain {
 
             HelperConfig.NetworkConfig memory cfg = helperConfig.getConfig(block.chainid);
 
-            Paymaster paymaster = Paymaster(payable(cfg.inbox));
+            Paymaster paymaster = Paymaster(payable(cfg.paymaster));
 
             uint256 entryPointBalance = paymaster.getGasBalance(FULFILLER);
             uint256 magicSpendBalance = paymaster.getMagicSpendBalance(FULFILLER, _ETH_ADDRESS);

@@ -81,7 +81,7 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         paymaster.initialize(address(inbox));
     }
 
-    function test_initialize_initializesInbox() external {
+    function test_initialize_initializesInbox() external view {
         assertEq(address(paymaster.inbox()), address(inbox));
     }
 
