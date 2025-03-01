@@ -110,6 +110,9 @@ contract Paymaster is IPaymaster {
     /// @notice This error is thrown in `fulfillerWithdraw` when the caller is not the RRC-7755 Inbox contract
     error InvalidCaller();
 
+    /// @notice This error is thrown in `initialize` when the inbox address is already set
+    error AlreadyInitialized();
+
     /// @notice This event is emitted when a fulfiller's claim address is set
     ///
     /// @param fulfiller    The address of the fulfiller
@@ -159,11 +162,15 @@ contract Paymaster is IPaymaster {
     /// @notice Initializes the paymaster with the RRC-7755 Inbox contract
     ///
     /// @custom:reverts If the inbox address is the zero address
+    /// @custom:reverts If the paymaster is already initialized
     ///
     /// @param inbox_ The address of the RRC-7755 Inbox contract
     function initialize(address inbox_) external {
         if (inbox_ == address(0)) {
             revert ZeroAddress();
+        }
+        if (address(inbox) != address(0)) {
+            revert AlreadyInitialized();
         }
 
         inbox = IInbox(inbox_);

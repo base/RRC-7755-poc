@@ -71,6 +71,20 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         new Paymaster(address(0));
     }
 
+    function test_initialize_reverts_zeroAddressInbox() external {
+        vm.expectRevert(Paymaster.ZeroAddress.selector);
+        paymaster.initialize(address(0));
+    }
+
+    function test_initialize_reverts_alreadyInitialized() external {
+        vm.expectRevert(Paymaster.AlreadyInitialized.selector);
+        paymaster.initialize(address(inbox));
+    }
+
+    function test_initialize_initializesInbox() external {
+        assertEq(address(paymaster.inbox()), address(inbox));
+    }
+
     function test_receive_incrementsMagicSpendBalance(uint256 amount) external fundAccount(signer.addr, amount) {
         uint256 initialBalance = paymaster.getMagicSpendBalance(signer.addr, _ETH_ADDRESS);
 
@@ -310,6 +324,67 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         paymaster.withdrawTo(address(mockErc20), withdrawAddress, amount);
 
         assertEq(mockErc20.balanceOf(withdrawAddress), initialBalance + amount);
+    }
+
+    function test_fulfillerWithdraw_revertsIfNotCalledByInbox() external {
+        vm.expectRevert(Paymaster.InvalidCaller.selector);
+        paymaster.fulfillerWithdraw(signer.addr, _ETH_ADDRESS, 1);
+    }
+
+    function test_fulfillerWithdraw_revertsIfInsufficientBalance(uint256 amount)
+        external
+        fundAccount(signer.addr, amount)
+        fundPaymasterTokens(signer.addr, amount)
+    {
+        vm.assume(amount < type(uint256).max);
+        uint256 requestedAmount = amount + 1;
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Paymaster.InsufficientMagicSpendBalance.selector, signer.addr, amount, requestedAmount
+            )
+        );
+        vm.prank(address(inbox));
+        paymaster.fulfillerWithdraw(signer.addr, address(mockErc20), requestedAmount);
+    }
+
+    function test_fulfillerWithdraw_decreasesMagicSpendBalance(uint256 amount)
+        external
+        fundAccount(signer.addr, amount)
+        fundPaymasterTokens(signer.addr, amount)
+    {
+        assertEq(paymaster.getMagicSpendBalance(signer.addr, address(mockErc20)), amount);
+
+        vm.prank(address(inbox));
+        paymaster.fulfillerWithdraw(signer.addr, address(mockErc20), amount);
+
+        assertEq(paymaster.getMagicSpendBalance(signer.addr, address(mockErc20)), 0);
+    }
+
+    function test_fulfillerWithdraw_withdrawsTokensFromPaymaster(uint256 amount)
+        external
+        fundAccount(signer.addr, amount)
+        fundPaymasterTokens(signer.addr, amount)
+    {
+        assertEq(mockErc20.balanceOf(address(paymaster)), amount);
+
+        vm.prank(address(inbox));
+        paymaster.fulfillerWithdraw(signer.addr, address(mockErc20), amount);
+
+        assertEq(mockErc20.balanceOf(address(paymaster)), 0);
+    }
+
+    function test_fulfillerWithdraw_withdrawsTokensToInbox(uint256 amount)
+        external
+        fundAccount(signer.addr, amount)
+        fundPaymasterTokens(signer.addr, amount)
+    {
+        assertEq(mockErc20.balanceOf(address(inbox)), 0);
+
+        vm.prank(address(inbox));
+        paymaster.fulfillerWithdraw(signer.addr, address(mockErc20), amount);
+
+        assertEq(mockErc20.balanceOf(address(inbox)), amount);
     }
 
     function test_entryPointWithdrawTo_revertsIfWithdrawAddressIsZeroAddress() public {
