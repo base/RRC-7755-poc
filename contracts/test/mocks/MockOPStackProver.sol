@@ -8,7 +8,7 @@ contract MockOPStackProver is RRC7755OutboxToOPStack {
         return _minExpiryTime(finalityDelay);
     }
 
-    function validateProof(bytes memory storageKey, address inbox, bytes[] calldata attributes, bytes calldata proof)
+    function validateProof(bytes memory storageKey, bytes32 inbox, bytes[] calldata attributes, bytes calldata proof)
         external
         view
     {

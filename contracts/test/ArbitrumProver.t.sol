@@ -56,7 +56,7 @@ contract ArbitrumProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(ArbitrumProver.InvalidStateRoot.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_reverts_ifUnconfirmed() external fundAlice(_REWARD_AMOUNT) {
@@ -69,7 +69,7 @@ contract ArbitrumProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(ArbitrumProver.NodeNotConfirmed.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_reverts_ifInvalidRLPHeaders() external fundAlice(_REWARD_AMOUNT) {
@@ -82,7 +82,7 @@ contract ArbitrumProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(ArbitrumProver.InvalidBlockHeaders.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_reverts_ifInvalidL2Storage() external fundAlice(_REWARD_AMOUNT) {
@@ -95,7 +95,7 @@ contract ArbitrumProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(ArbitrumProver.InvalidL2Storage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_proveArbitrumSepoliaStateFromBaseSepolia() external fundAlice(_REWARD_AMOUNT) {
@@ -107,7 +107,7 @@ contract ArbitrumProverTest is BaseTest {
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.prank(FILLER);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function _buildProof(string memory json) private returns (ArbitrumProver.RRC7755Proof memory) {

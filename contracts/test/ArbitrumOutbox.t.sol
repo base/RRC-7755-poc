@@ -27,8 +27,8 @@ contract ArbitrumOutboxTest is BaseTest {
         approveAddr = address(arbitrumOutbox);
     }
 
-    function test_getRequiredAttributes() external view {
-        bytes4[] memory requiredAttributes = arbitrumOutbox.getRequiredAttributes();
+    function test_getRequiredAttributes_standardRequest() external view {
+        bytes4[] memory requiredAttributes = arbitrumOutbox.getRequiredAttributes(false);
         assertEq(requiredAttributes.length, 5);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
@@ -37,13 +37,24 @@ contract ArbitrumOutboxTest is BaseTest {
         assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
     }
 
+    function test_getRequiredAttributes_userOp() external view {
+        bytes4[] memory requiredAttributes = arbitrumOutbox.getRequiredAttributes(true);
+        assertEq(requiredAttributes.length, 6);
+        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[3], _REQUESTER_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _INBOX_ATTRIBUTE_SELECTOR);
+    }
+
     function test_sendMessage_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(arbitrumOutbox)));
         vm.prank(ALICE);
-        arbitrumOutbox.processAttributes(m.attributes, address(0), 0);
+        arbitrumOutbox.processAttributes(m.attributes, address(0), 0, false);
     }
 
     function test_sendMessage_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {

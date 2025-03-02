@@ -51,7 +51,7 @@ contract HashiProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(RRC7755OutboxToHashi.FinalityDelaySecondsInProgress.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_reverts_ifInvalidBlockHeader() external fundAlice(_REWARD_AMOUNT) {
@@ -69,7 +69,7 @@ contract HashiProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(HashiProver.InvalidBlockHeader.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_reverts_ifInvalidStorage() external fundAlice(_REWARD_AMOUNT) {
@@ -84,7 +84,7 @@ contract HashiProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(HashiProver.InvalidStorage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function test_proveGnosisChiadoStateFromBaseSepolia() external fundAlice(_REWARD_AMOUNT) {
@@ -96,7 +96,7 @@ contract HashiProverTest is BaseTest {
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.prank(FILLER);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, abi.encode(proof));
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 
     function _buildProof(string memory json) private returns (HashiProver.RRC7755Proof memory) {

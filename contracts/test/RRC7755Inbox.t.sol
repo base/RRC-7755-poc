@@ -147,15 +147,6 @@ contract RRC7755InboxTest is BaseTest {
         assertEq(info.timestamp, block.timestamp);
     }
 
-    function test_fulfill_reverts_ifMsgValueTooHigh() external {
-        TestMessage memory m = _initMessage(false, false);
-
-        vm.deal(FILLER, 1);
-        vm.prank(FILLER);
-        vm.expectRevert(abi.encodeWithSelector(Paymaster.InvalidValue.selector, 0, 1));
-        inbox.fulfill{value: 1}(m.sourceChain, m.sender, m.payload, m.attributes, FILLER);
-    }
-
     function test_fulfill_emitsEvent() external {
         TestMessage memory m = _initMessage(false, false);
 

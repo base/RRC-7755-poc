@@ -27,8 +27,8 @@ contract HashiOutboxTest is BaseTest {
         approveAddr = address(hashiOutbox);
     }
 
-    function test_getRequiredAttributes() external view {
-        bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes();
+    function test_getRequiredAttributes_standardRequest() external view {
+        bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(false);
         assertEq(requiredAttributes.length, 6);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
@@ -36,6 +36,18 @@ contract HashiOutboxTest is BaseTest {
         assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[5], _DESTINATION_CHAIN_SELECTOR);
+    }
+
+    function test_getRequiredAttributes_userOp() external view {
+        bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(true);
+        assertEq(requiredAttributes.length, 7);
+        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[2], _REQUESTER_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _DESTINATION_CHAIN_SELECTOR);
+        assertEq(requiredAttributes[6], _INBOX_ATTRIBUTE_SELECTOR);
     }
 
     function test_sendMessage_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -48,7 +60,7 @@ contract HashiOutboxTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(hashiOutbox)));
         vm.prank(ALICE);
-        hashiOutbox.processAttributes(m.attributes, address(0), 0);
+        hashiOutbox.processAttributes(m.attributes, address(0), 0, false);
     }
 
     function test_sendMessage_reverts_ifDuplicateAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {

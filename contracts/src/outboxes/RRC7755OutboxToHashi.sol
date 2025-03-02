@@ -32,24 +32,28 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     error DuplicateAttribute(bytes4 selector);
 
     /// @notice Returns the required attributes for this contract
-    function getRequiredAttributes() external pure override returns (bytes4[] memory) {
-        return _getRequiredAttributes();
+    function getRequiredAttributes(bool isUserOp) external pure override returns (bytes4[] memory) {
+        return _getRequiredAttributes(isUserOp);
     }
 
     /// @notice This is only to be called by this contract during a `sendMessage` call
     ///
     /// @custom:reverts If the caller is not this contract
     ///
-    /// @param attributes The attributes to be processed
-    /// @param requester  The address of the requester
-    /// @param value      The value of the message
-    function processAttributes(bytes[] calldata attributes, address requester, uint256 value) public override {
+    /// @param attributes   The attributes to be processed
+    /// @param requester    The address of the requester
+    /// @param value        The value of the message
+    /// @param requireInbox Whether the inbox attribute is required
+    function processAttributes(bytes[] calldata attributes, address requester, uint256 value, bool requireInbox)
+        public
+        override
+    {
         if (msg.sender != address(this)) {
             revert InvalidCaller({caller: msg.sender, expectedCaller: address(this)});
         }
 
         // Define required attributes and their handlers
-        bytes4[] memory requiredSelectors = _getRequiredAttributes();
+        bytes4[] memory requiredSelectors = _getRequiredAttributes(requireInbox);
         bool[] memory processed = new bool[](requiredSelectors.length);
 
         // Process all attributes
@@ -108,7 +112,7 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     /// @param proof                   The proof to validate
     function _validateProof(
         bytes memory inboxContractStorageKey,
-        address inbox,
+        bytes32 inbox,
         bytes[] calldata attributes,
         bytes calldata proof
     ) internal view override {
@@ -116,7 +120,7 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
 
         address shoyuBashi = _extractShoyuBashi(attributes);
         HashiProver.Target memory target = HashiProver.Target({
-            addr: inbox,
+            addr: inbox.bytes32ToAddress(),
             storageKey: inboxContractStorageKey,
             destinationChainId: destinationChainId,
             shoyuBashi: shoyuBashi
@@ -172,14 +176,17 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
         return type(uint256).max; // Not found
     }
 
-    function _getRequiredAttributes() private pure returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](6);
+    function _getRequiredAttributes(bool requireInbox) private pure returns (bytes4[] memory) {
+        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 7 : 6);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _DELAY_ATTRIBUTE_SELECTOR;
         requiredSelectors[4] = _SHOYU_BASHI_ATTRIBUTE_SELECTOR;
         requiredSelectors[5] = _DESTINATION_CHAIN_SELECTOR;
+        if (requireInbox) {
+            requiredSelectors[6] = _INBOX_ATTRIBUTE_SELECTOR;
+        }
         return requiredSelectors;
     }
 }
