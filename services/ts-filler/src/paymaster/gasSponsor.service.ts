@@ -1,11 +1,11 @@
 import { formatEther, parseEther } from "viem";
 import { sleep } from "bun";
 
-import EntryPoint from "../abis/EntryPoint";
 import chains from "../chain/chains";
 import SignerService from "../signer/signer.service";
 import config from "../config";
 import RRC7755Inbox from "../abis/RRC7755Inbox";
+import Paymaster from "../abis/Paymaster";
 
 export default class GasSponsorService {
   private processing = false;
@@ -45,10 +45,10 @@ export default class GasSponsorService {
       const signerService = new SignerService(chainConfig);
 
       const balanceWei = await chainConfig.publicClient.readContract({
-        address: chainConfig.contracts.entryPoint,
-        abi: EntryPoint,
-        functionName: "balanceOf",
-        args: [chainConfig.contracts.inbox],
+        address: chainConfig.contracts.paymaster,
+        abi: Paymaster,
+        functionName: "getGasBalance",
+        args: [signerService.getFulfillerAddress()],
       });
       const balance = +formatEther(balanceWei);
 
@@ -61,8 +61,8 @@ export default class GasSponsorService {
       const functionName = "entryPointDeposit";
       const args = [parseEther(config.gasSponsorThreshold.toString())];
       const txnHash = await signerService.writeContract(
-        chainConfig.contracts.inbox,
-        RRC7755Inbox,
+        chainConfig.contracts.paymaster,
+        Paymaster,
         functionName,
         args
       );
