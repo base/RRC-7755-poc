@@ -63,13 +63,6 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
     /// @notice This error is thrown when a User Operation is detected during an `executeMessages` call
     error UserOp();
 
-    /// @notice This error is thrown if a fulfiller submits a `msg.value` greater than the total value needed for all
-    ///         the calls
-    ///
-    /// @param expected The total value needed for all the calls
-    /// @param actual   The received `msg.value`
-    error InvalidValue(uint256 expected, uint256 actual);
-
     /// @notice This error is thrown if an account attempts to cancel a request that did not originate from that account
     error InvalidCaller();
 
@@ -157,19 +150,10 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
 
     function _sendCallsAndValidateMsgValue(bytes calldata payload) private {
         Call[] memory calls = abi.decode(payload, (Call[]));
-        uint256 valueSent;
 
         for (uint256 i; i < calls.length; i++) {
             address to = calls[i].to.bytes32ToAddress();
             _call(to, calls[i].data, calls[i].value);
-
-            unchecked {
-                valueSent += calls[i].value;
-            }
-        }
-
-        if (valueSent != msg.value) {
-            revert InvalidValue(valueSent, msg.value);
         }
     }
 

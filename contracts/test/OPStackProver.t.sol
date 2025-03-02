@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {stdJson} from "forge-std/StdJson.sol";
 
 import {OPStackProver} from "../src/libraries/provers/OPStackProver.sol";
+import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 import {StateValidator} from "../src/libraries/StateValidator.sol";
 import {RRC7755OutboxToOPStack} from "../src/outboxes/RRC7755OutboxToOPStack.sol";
 
@@ -12,6 +13,7 @@ import {BaseTest} from "./BaseTest.t.sol";
 
 contract OPStackProverTest is BaseTest {
     using stdJson for string;
+    using GlobalTypes for address;
 
     MockOPStackProver prover;
 
@@ -48,7 +50,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_reverts_ifInvalidBeaconRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -63,7 +65,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_reverts_ifInvalidL1StateRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -78,7 +80,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_reverts_ifInvalidL1Storage() external fundAlice(_REWARD_AMOUNT) {
@@ -91,7 +93,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL1Storage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_reverts_ifInvalidL2StateRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -104,7 +106,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL2StateRoot.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_reverts_ifInvalidL2Storage() external fundAlice(_REWARD_AMOUNT) {
@@ -117,7 +119,7 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL2Storage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function test_validate_proveOptimismSepoliaStateFromBaseSepolia() external fundAlice(_REWARD_AMOUNT) {
@@ -129,7 +131,7 @@ contract OPStackProverTest is BaseTest {
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.prank(FILLER);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT, attributes, storageProofData);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
     function _buildProofAndEncodeProof(string memory json) private returns (bytes memory) {

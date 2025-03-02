@@ -27,8 +27,8 @@ contract OPStackOutboxTest is BaseTest {
         approveAddr = address(opStackOutbox);
     }
 
-    function test_getRequiredAttributes() external view {
-        bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes();
+    function test_getRequiredAttributes_standardRequest() external view {
+        bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(false);
         assertEq(requiredAttributes.length, 5);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
@@ -37,13 +37,24 @@ contract OPStackOutboxTest is BaseTest {
         assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
     }
 
+    function test_getRequiredAttributes_userOp() external view {
+        bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(true);
+        assertEq(requiredAttributes.length, 6);
+        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[3], _REQUESTER_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _INBOX_ATTRIBUTE_SELECTOR);
+    }
+
     function test_sendMessage_opStack_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(opStackOutbox)));
         vm.prank(ALICE);
-        opStackOutbox.processAttributes(m.attributes, address(0), 0);
+        opStackOutbox.processAttributes(m.attributes, address(0), 0, false);
     }
 
     function test_sendMessage_opStack_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {

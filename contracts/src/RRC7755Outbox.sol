@@ -161,9 +161,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external payable returns (bytes32) {
         if (attributes.length == 0) {
             bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
-            this.processAttributes(userOpAttributes, msg.sender, msg.value);
+            this.processAttributes(userOpAttributes, msg.sender, msg.value, true);
         } else {
-            this.processAttributes(attributes, msg.sender, msg.value);
+            this.processAttributes(attributes, msg.sender, msg.value, false);
         }
 
         bytes32 sender = address(this).addressToBytes32();
@@ -205,7 +205,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
-        _validateProof(storageKey, receiver.bytes32ToAddress(), attributes, proof);
+        _validateProof(storageKey, receiver, attributes, proof);
 
         (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(attributes);
 
@@ -235,10 +235,8 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = getUserOpHash(userOp, receiver, destinationChain);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
-        address inbox = address(bytes20(userOp.paymasterAndData[:20]));
         bytes[] memory attributes = getUserOpAttributes(userOp);
-        (bytes32 rewardAsset, uint256 rewardAmount) =
-            this.innerValidateProofAndGetReward(storageKey, inbox, attributes, proof);
+        (bytes32 rewardAsset, uint256 rewardAmount) = this.innerValidateProofAndGetReward(storageKey, attributes, proof);
 
         _processClaim(messageId, payTo, rewardAsset, rewardAmount);
     }
@@ -312,16 +310,23 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     }
 
     /// @notice Returns the required attributes for this contract
-    function getRequiredAttributes() external pure virtual returns (bytes4[] memory);
+    ///
+    /// @param isUserOp Whether the request is an ERC-4337 User Operation
+    ///
+    /// @return _ The required attributes for this contract
+    function getRequiredAttributes(bool isUserOp) external pure virtual returns (bytes4[] memory);
 
     /// @notice This is only to be called by this contract during a `sendMessage` call
     ///
     /// @custom:reverts If the caller is not this contract
     ///
-    /// @param attributes The attributes to be processed
-    /// @param requester  The address of the requester
-    /// @param value      The value of the message
-    function processAttributes(bytes[] calldata attributes, address requester, uint256 value) public virtual;
+    /// @param attributes   The attributes to be processed
+    /// @param requester    The address of the requester
+    /// @param value        The value of the message
+    /// @param requireInbox Whether the inbox attribute is required
+    function processAttributes(bytes[] calldata attributes, address requester, uint256 value, bool requireInbox)
+        public
+        virtual;
 
     /// @notice Validates storage proofs and verifies fill
     ///
@@ -332,17 +337,15 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
-    /// @param inbox                   The address of the `RRC7755Inbox` contract
     /// @param attributes              The attributes to be included in the message
     /// @param proofData               The proof to validate
     function innerValidateProofAndGetReward(
         bytes memory inboxContractStorageKey,
-        address inbox,
         bytes[] calldata attributes,
         bytes calldata proofData
     ) public view returns (bytes32, uint256) {
+        (bytes32 rewardAsset, uint256 rewardAmount, bytes32 inbox) = _getRewardAndInbox(attributes);
         _validateProof(inboxContractStorageKey, inbox, attributes, proofData);
-        (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(attributes);
         return (rewardAsset, rewardAmount);
     }
 
@@ -440,7 +443,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param proofData               The proof to validate
     function _validateProof(
         bytes memory inboxContractStorageKey,
-        address inbox,
+        bytes32 inbox,
         bytes[] calldata attributes,
         bytes calldata proofData
     ) internal view virtual;
@@ -467,7 +470,8 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     }
 
     function _isOptionalAttribute(bytes4 selector) internal pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _MAGIC_SPEND_REQUEST_SELECTOR;
+        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _MAGIC_SPEND_REQUEST_SELECTOR
+            || selector == _INBOX_ATTRIBUTE_SELECTOR;
     }
 
     function _handleRewardAttribute(bytes calldata attribute, address requester, uint256 value) internal {
@@ -560,5 +564,21 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         }
 
         return (rewardAsset, rewardAmount);
+    }
+
+    function _getRewardAndInbox(bytes[] calldata attributes) private pure returns (bytes32, uint256, bytes32) {
+        bytes32 rewardAsset;
+        uint256 rewardAmount;
+        bytes32 inbox;
+
+        for (uint256 i; i < attributes.length; i++) {
+            if (bytes4(attributes[i]) == _REWARD_ATTRIBUTE_SELECTOR) {
+                (rewardAsset, rewardAmount) = abi.decode(attributes[i][4:], (bytes32, uint256));
+            } else if (bytes4(attributes[i]) == _INBOX_ATTRIBUTE_SELECTOR) {
+                inbox = abi.decode(attributes[i][4:], (bytes32));
+            }
+        }
+
+        return (rewardAsset, rewardAmount, inbox);
     }
 }

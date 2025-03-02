@@ -69,7 +69,7 @@ contract RRC7755OutboxTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(opStackOutbox)));
         vm.prank(ALICE);
-        opStackOutbox.processAttributes(m.attributes, address(0), 0);
+        opStackOutbox.processAttributes(m.attributes, address(0), 0, false);
     }
 
     function test_sendMessage_opStack_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -413,7 +413,7 @@ contract RRC7755OutboxTest is BaseTest {
 
     function test_processAttributes_reverts_ifInvalidCaller() external {
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), address(outbox)));
-        outbox.processAttributes(new bytes[](0), address(outbox), 0);
+        outbox.processAttributes(new bytes[](0), address(outbox), 0, false);
     }
 
     function test_claimReward_reverts_requestDoesNotExist(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -844,7 +844,7 @@ contract RRC7755OutboxTest is BaseTest {
     function _initUserOpMessage(uint256 rewardAmount) private view returns (TestMessage memory) {
         bytes32 destinationChain = bytes32(block.chainid);
         bytes32 sender = address(outbox).addressToBytes32();
-        bytes[] memory attributes = new bytes[](4);
+        bytes[] memory attributes = new bytes[](5);
 
         attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
@@ -852,6 +852,7 @@ contract RRC7755OutboxTest is BaseTest {
         attributes = _setDelay(attributes, 10, block.timestamp + 11);
         attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
+        attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
 
         PackedUserOperation memory userOp = PackedUserOperation({
             sender: address(0),
