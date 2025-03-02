@@ -1,11 +1,11 @@
 import { formatEther, parseEther } from "viem";
 import { sleep } from "bun";
 
-import RRC7755Inbox from "../abis/RRC7755Inbox";
 import chains from "../chain/chains";
 import constants from "../common/constants";
 import SignerService from "../signer/signer.service";
 import config from "../config";
+import Paymaster from "../abis/Paymaster";
 
 export default class MagicSpendService {
   private processing = false;
@@ -45,8 +45,8 @@ export default class MagicSpendService {
       const signerService = new SignerService(chainConfig);
 
       const balanceWei = await chainConfig.publicClient.readContract({
-        address: chainConfig.contracts.inbox,
-        abi: RRC7755Inbox,
+        address: chainConfig.contracts.paymaster,
+        abi: Paymaster,
         functionName: "getMagicSpendBalance",
         args: [signerService.getFulfillerAddress(), constants.ethAddress],
       });
@@ -59,7 +59,7 @@ export default class MagicSpendService {
       );
 
       const txnHash = await signerService.sendTransaction(
-        chainConfig.contracts.inbox,
+        chainConfig.contracts.paymaster,
         parseEther(config.magicSpendThreshold.toString())
       );
 
