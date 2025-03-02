@@ -85,6 +85,9 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
         PAYMASTER = Paymaster(payable(paymaster));
     }
 
+    /// @notice Allows the contract to receive ETH
+    receive() external payable {}
+
     /// @notice Delivery of a message sent from another chain.
     ///
     /// @param sourceChain The source chain identifier
