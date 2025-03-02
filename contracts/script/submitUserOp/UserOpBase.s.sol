@@ -37,6 +37,7 @@ contract UserOpBase is StandardBase {
         uint256 entryPointNonce = EntryPoint(payable(ENTRY_POINT)).getNonce(dstConfig.smartAccount, 0);
 
         bytes32 receiver = ENTRY_POINT.addressToBytes32();
+        bytes[] memory newAttributes = _addInboxAttribute(attributes, dstConfig.inbox);
 
         PackedUserOperation memory userOp = PackedUserOperation({
             sender: dstConfig.smartAccount,
@@ -46,7 +47,7 @@ contract UserOpBase is StandardBase {
             accountGasLimits: bytes32(abi.encodePacked(verificationGasLimit, callGasLimit)),
             preVerificationGas: 100000,
             gasFees: bytes32(abi.encodePacked(maxPriorityFeePerGas, maxFeePerGas)),
-            paymasterAndData: _encodePaymasterAndData(dstConfig.paymaster, attributes, ethAddress),
+            paymasterAndData: _encodePaymasterAndData(dstConfig.paymaster, newAttributes, ethAddress),
             signature: ""
         });
 
@@ -68,6 +69,15 @@ contract UserOpBase is StandardBase {
             paymasterPostOpGasLimit,
             abi.encode(ethAddress, ethAmount, precheck, attributes)
         );
+    }
+
+    function _addInboxAttribute(bytes[] memory attributes, address inbox) private pure returns (bytes[] memory) {
+        bytes[] memory newAttributes = new bytes[](attributes.length + 1);
+        for (uint256 i = 0; i < attributes.length; i++) {
+            newAttributes[i] = attributes[i];
+        }
+        newAttributes[attributes.length] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, inbox);
+        return newAttributes;
     }
 
     // Including to block from coverage report
