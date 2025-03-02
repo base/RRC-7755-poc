@@ -23,7 +23,11 @@ contract UserOpHashiBase is UserOpBase {
         return (destinationChain, receiver, abi.encode(userOp), baseAttributes);
     }
 
-    function _updateUserOpAttributes(bytes memory payload, address shoyuBashi, bytes32 destinationChain) private pure returns (PackedUserOperation memory) {
+    function _updateUserOpAttributes(bytes memory payload, address shoyuBashi, bytes32 destinationChain)
+        private
+        pure
+        returns (PackedUserOperation memory)
+    {
         PackedUserOperation memory userOp = abi.decode(payload, (PackedUserOperation));
         (address ethAddress, uint256 ethAmount, address precheck, bytes[] memory attributes) =
             abi.decode(_slice(userOp.paymasterAndData, 52), (address, uint256, address, bytes[]));
@@ -36,7 +40,11 @@ contract UserOpHashiBase is UserOpBase {
         return userOp;
     }
 
-    function _convertAttributes(bytes[] memory attributes, address shoyuBashi, bytes32 destinationChain) private pure returns (bytes[] memory) {
+    function _convertAttributes(bytes[] memory attributes, address shoyuBashi, bytes32 destinationChain)
+        private
+        pure
+        returns (bytes[] memory)
+    {
         bytes[] memory newAttributes = new bytes[](attributes.length + 1);
 
         for (uint256 i; i < attributes.length; i++) {
