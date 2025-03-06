@@ -37,11 +37,23 @@ deploy-mock-account:
 	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockAccount.sol:MockAccount --broadcast -vvvv
 	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockAccount.sol:MockAccount --broadcast -vvvv
 
+.PHONY: deploy-mock-account-tracker
+deploy-mock-account-tracker:
+	forge create --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT) test/mocks/MockAccountTracker.sol:MockAccountTracker --broadcast -vvvv
+	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockAccountTracker.sol:MockAccountTracker --broadcast -vvvv
+	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockAccountTracker.sol:MockAccountTracker --broadcast -vvvv
+
 .PHONY: deploy-mock-token
 deploy-mock-token:
 	forge create --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
 	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
 	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockToken.sol:MockToken --broadcast -vvvv
+
+.PHONY: deploy-mock-shoyu-bashi
+deploy-mock-shoyu-bashi:
+	forge create --rpc-url $(ARBITRUM_RPC) --account $(ACCOUNT) test/mocks/MockShoyuBashi.sol:MockShoyuBashi --broadcast -vvvv
+	forge create --rpc-url $(OPTIMISM_RPC) --account $(ACCOUNT) test/mocks/MockShoyuBashi.sol:MockShoyuBashi --broadcast -vvvv
+	forge create --rpc-url $(BASE_RPC) --account $(ACCOUNT) test/mocks/MockShoyuBashi.sol:MockShoyuBashi --broadcast -vvvv
 
 .PHONY: read-mock
 read-mock:
