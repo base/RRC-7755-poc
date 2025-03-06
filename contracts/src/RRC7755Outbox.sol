@@ -112,7 +112,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param expiry           The timestamp at which the request expires
     error CannotCancelRequestBeforeExpiry(uint256 currentTimestamp, uint256 expiry);
 
-    /// @notice This error is thrown if an account attempts to cancel a request that did not originate from that account
+    /// @notice This error is thrown if an account attempts to call processAttributes
     ///
     /// @param caller         The account attempting the request cancellation
     /// @param expectedCaller The account that created the request
@@ -141,10 +141,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice Initiates the sending of a 7755 request containing a single message
     ///
     /// @custom:reverts If the attributes array length is less than 3
-    /// @custom:reverts If a required attribute is missing from the global attributes array. Required attributes are:
-    ///                   - Reward attribute
-    ///                   - Delay attribute
-    ///                   - Inbox attribute
+    /// @custom:reverts If a required attribute is missing from the global attributes array
     /// @custom:reverts If an unsupported attribute is provided
     ///
     /// @param destinationChain The chain identifier of the destination chain
@@ -514,9 +511,6 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) private {
         _checkValidStatus({requestHash: messageId, expectedStatus: CrossChainCallStatus.Requested});
 
-        if (msg.sender.addressToBytes32() != requester) {
-            revert InvalidCaller({caller: msg.sender, expectedCaller: requester.bytes32ToAddress()});
-        }
         if (block.timestamp < expiry + CANCEL_DELAY_SECONDS) {
             revert CannotCancelRequestBeforeExpiry({
                 currentTimestamp: block.timestamp,

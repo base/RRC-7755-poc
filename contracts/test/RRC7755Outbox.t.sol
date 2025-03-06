@@ -622,14 +622,6 @@ contract RRC7755OutboxTest is BaseTest {
         outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
-    function test_cancelMessage_reverts_invalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
-        TestMessage memory m = _submitRequest(rewardAmount);
-
-        vm.prank(FILLER);
-        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, FILLER, ALICE));
-        outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
     function test_cancelMessage_reverts_requestStillActive(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _submitRequest(rewardAmount);
         uint256 cancelDelaySeconds = outbox.CANCEL_DELAY_SECONDS();
@@ -643,15 +635,6 @@ contract RRC7755OutboxTest is BaseTest {
             )
         );
         vm.prank(ALICE);
-        outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_cancelMessage_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
-        TestMessage memory m = _submitRequest(rewardAmount);
-
-        vm.warp(this.extractExpiry(m.attributes) + outbox.CANCEL_DELAY_SECONDS());
-        vm.prank(FILLER);
-        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, FILLER, ALICE));
         outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
