@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract MockAccountTracker {
-    address constant public ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     mapping(address account => mapping(address token => uint256 balance)) private _balances;
 
@@ -63,4 +63,7 @@ contract MockAccountTracker {
 
         _balances[account][token] += amount;
     }
+
+    // Including to block from coverage report
+    function test() external {}
 }
