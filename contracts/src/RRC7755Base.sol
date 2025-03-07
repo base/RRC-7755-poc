@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title ERC7786Base
+/// @title RRC7755Base
 ///
 /// @author Coinbase (https://github.com/base/RRC-7755-poc)
 ///
-/// @notice This contract contains the selectors for the RRC-7755-supported attributes of the ERC7786 standard
+/// @notice This contract contains helper functions and shared message attributes for RRC-7755 used by both Inbox and
+///         Outbox contracts. The attributes are inspired by ERC-7786.
 contract RRC7755Base {
     /// @notice Low-level call specs representing the desired transaction on destination chain
     struct Call {
