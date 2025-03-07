@@ -6,7 +6,7 @@ import {
   type Log,
 } from "viem";
 const { ssz } = await import("@lodestar/types");
-const { SignedBeaconBlock } = ssz.deneb;
+const { SignedBeaconBlock } = ssz.electra;
 
 import ArbitrumRollup from "../abis/ArbitrumRollup";
 import AnchorStateRegistry from "../abis/AnchorStateRegistry";
