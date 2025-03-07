@@ -103,7 +103,7 @@ library ArbitrumProver {
     ///
     /// @param proof  The proof to validate
     /// @param target The proof target on L1 and dst L2
-    function validate(bytes calldata proof, Target memory target) internal view {
+    function validate(bytes calldata proof, Target memory target) internal view returns (bytes memory) {
         RRC7755Proof memory data = abi.decode(proof, (RRC7755Proof));
 
         // Set the expected storage key and value for the destination L2 storage slot
@@ -155,6 +155,8 @@ library ArbitrumProver {
         if (!target.l2Address.validateAccountStorage(l2StateRoot, data.dstL2AccountProofParams)) {
             revert InvalidL2Storage();
         }
+
+        return data.dstL2AccountProofParams.storageValue;
     }
 
     /// @notice Derives the L1 storageKey using the supplied `nodeIndex` and the `confirmData` storage slot offset

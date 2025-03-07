@@ -8,6 +8,7 @@ import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 import {ArbitrumProver} from "../src/libraries/provers/ArbitrumProver.sol";
 import {StateValidator} from "../src/libraries/StateValidator.sol";
 import {RRC7755OutboxToArbitrum} from "../src/outboxes/RRC7755OutboxToArbitrum.sol";
+import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 
 import {MockArbitrumProver} from "./mocks/MockArbitrumProver.sol";
 import {BaseTest} from "./BaseTest.t.sol";
@@ -95,6 +96,18 @@ contract ArbitrumProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(ArbitrumProver.InvalidL2Storage.selector);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+    }
+
+    function test_reverts_ifInvalidCaller() external fundAlice(_REWARD_AMOUNT) {
+        (string memory sourceChain, string memory sender, Call[] memory calls, bytes[] memory attributes) =
+            _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId = _getMessageId(sourceChain, sender, calls, attributes);
+
+        ArbitrumProver.RRC7755Proof memory proof = _buildProof(validProof);
+        bytes memory inboxStorageKey = _deriveStorageKey(messageId);
+
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), FILLER));
         prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
     }
 

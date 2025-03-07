@@ -66,7 +66,8 @@ contract MockOutbox is RRC7755Outbox {
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,
-        bytes calldata proofData
+        bytes calldata proofData,
+        address caller
     ) internal view override {}
 
     function _getRequiredAttributes(bool isUserOp) private pure returns (bytes4[] memory) {

@@ -7,6 +7,7 @@ import {OPStackProver} from "../src/libraries/provers/OPStackProver.sol";
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 import {StateValidator} from "../src/libraries/StateValidator.sol";
 import {RRC7755OutboxToOPStack} from "../src/outboxes/RRC7755OutboxToOPStack.sol";
+import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 
 import {MockOPStackProver} from "./mocks/MockOPStackProver.sol";
 import {BaseTest} from "./BaseTest.t.sol";
@@ -119,6 +120,18 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL2Storage.selector);
+        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
+    }
+
+    function test_validate_reverts_ifInvalidCaller() external fundAlice(_REWARD_AMOUNT) {
+        (string memory sourceChain, string memory sender, Call[] memory calls, bytes[] memory attributes) =
+            _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId = _getMessageId(sourceChain, sender, calls, attributes);
+
+        bytes memory storageProofData = _buildProofAndEncodeProof(validProof);
+        bytes memory inboxStorageKey = _deriveStorageKey(messageId);
+
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), FILLER));
         prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, storageProofData);
     }
 
