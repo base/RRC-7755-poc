@@ -12,7 +12,7 @@ contract MockArbitrumProver is RRC7755OutboxToArbitrum {
         external
         view
     {
-        _validateProof(storageKey, inbox, attributes, proof);
+        _validateProof(storageKey, inbox, attributes, proof, msg.sender);
     }
 
     // Including to block from coverage report

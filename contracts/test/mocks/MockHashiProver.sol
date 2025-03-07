@@ -12,7 +12,7 @@ contract MockHashiProver is RRC7755OutboxToHashi {
         external
         view
     {
-        _validateProof(storageKey, inbox, attributes, proof);
+        _validateProof(storageKey, inbox, attributes, proof, msg.sender);
     }
 
     function isOptionalAttribute(bytes4 selector) external pure returns (bool) {

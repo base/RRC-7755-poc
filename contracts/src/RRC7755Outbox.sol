@@ -202,7 +202,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
-        _validateProof(storageKey, receiver, attributes, proof);
+        _validateProof(storageKey, receiver, attributes, proof, msg.sender);
 
         (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(attributes);
 
@@ -233,7 +233,8 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         bytes[] memory attributes = getUserOpAttributes(userOp);
-        (bytes32 rewardAsset, uint256 rewardAmount) = this.innerValidateProofAndGetReward(storageKey, attributes, proof);
+        (bytes32 rewardAsset, uint256 rewardAmount) =
+            this.innerValidateProofAndGetReward(storageKey, attributes, proof, msg.sender);
 
         _processClaim(messageId, payTo, rewardAsset, rewardAmount);
     }
@@ -336,13 +337,17 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///                                `RRC7755Inbox` contract
     /// @param attributes              The attributes to be included in the message
     /// @param proofData               The proof to validate
+    /// @param caller                  The address of the caller
+    ///
+    /// @return _ The reward asset and reward amount
     function innerValidateProofAndGetReward(
         bytes memory inboxContractStorageKey,
         bytes[] calldata attributes,
-        bytes calldata proofData
+        bytes calldata proofData,
+        address caller
     ) public view returns (bytes32, uint256) {
         (bytes32 rewardAsset, uint256 rewardAmount, bytes32 inbox) = _getRewardAndInbox(attributes);
-        _validateProof(inboxContractStorageKey, inbox, attributes, proofData);
+        _validateProof(inboxContractStorageKey, inbox, attributes, proofData, caller);
         return (rewardAsset, rewardAmount);
     }
 
@@ -430,6 +435,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @custom:reverts If fillInfo not found at inboxContractStorageKey on crossChainCall.verifyingContract
     /// @custom:reverts If fillInfo.timestamp is less than crossChainCall.finalityDelaySeconds from current destination
     ///                 chain block timestamp
+    /// @custom:reverts If caller is not the address in the proof storage value
     ///
     /// @dev Implementation will vary by L2
     ///
@@ -438,11 +444,13 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param inbox                   The address of the `RRC7755Inbox` contract
     /// @param attributes              The attributes to be included in the message
     /// @param proofData               The proof to validate
+    /// @param caller                  The address of the caller
     function _validateProof(
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,
-        bytes calldata proofData
+        bytes calldata proofData,
+        address caller
     ) internal view virtual;
 
     /// @notice Returns the minimum amount of time before a request can expire

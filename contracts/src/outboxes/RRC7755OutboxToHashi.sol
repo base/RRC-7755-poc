@@ -104,17 +104,20 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     /// @custom:reverts If fulfillmentInfo.timestamp is less than request.finalityDelaySeconds from current destination
     ///                 chain block timestamp.
     /// @custom:reverts If the L2StateRoot does not correspond to the validated L1 storage slot
+    /// @custom:reverts If caller is not the address in the proof storage value
     ///
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
     /// @param inbox                   The address of the `RRC7755Inbox` contract
     /// @param attributes              The attributes of the message
     /// @param proof                   The proof to validate
+    /// @param caller                  The address of the caller
     function _validateProof(
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,
-        bytes calldata proof
+        bytes calldata proof,
+        address caller
     ) internal view override {
         uint256 destinationChainId = _extractChainId(attributes);
 
@@ -128,6 +131,10 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
         (uint256 timestamp, bytes memory inboxContractStorageValue) = proof.validate(target);
 
         RRC7755Inbox.FulfillmentInfo memory fulfillmentInfo = _decodeFulfillmentInfo(bytes32(inboxContractStorageValue));
+
+        if (fulfillmentInfo.fulfiller != caller) {
+            revert InvalidCaller({expectedCaller: fulfillmentInfo.fulfiller, caller: caller});
+        }
 
         bytes calldata delayAttribute = _locateAttribute(attributes, _DELAY_ATTRIBUTE_SELECTOR);
         (uint256 delaySeconds,) = abi.decode(delayAttribute[4:], (uint256, uint256));
