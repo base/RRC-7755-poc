@@ -86,12 +86,18 @@ export default class ProverService {
     const { l2Block, parentAssertionHash, afterInboxBatchAcc, assertion } =
       await this.chainService.getL2Block(l1BlockNumber);
     const l2Slot = this.deriveRRC7755VerifierStorageSlot(requestHash);
-    const l1Block = await this.activeChains.l1.publicClient.getBlock({
-      blockNumber: l1BlockNumber,
-    });
 
-    if (timestampCutoff > l1Block.timestamp) {
-      throw new Error("L2 block timestamp is too old");
+    if (this.usingHashi) {
+      if (timestampCutoff > l2Block.timestamp) {
+        throw new Error("L2 block timestamp is too old");
+      }
+    } else {
+      const l1Block = await this.activeChains.l1.publicClient.getBlock({
+        blockNumber: l1BlockNumber,
+      });
+      if (timestampCutoff > l1Block.timestamp) {
+        throw new Error("L1 block timestamp is too old");
+      }
     }
 
     const storageProofOpts = {
