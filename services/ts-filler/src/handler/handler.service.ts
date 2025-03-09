@@ -166,11 +166,14 @@ export default class HandlerService {
   ): Promise<Hex> {
     const valueNeeded = this.extractValueNeededFromCalls(payload);
 
+    // Pre-compute the hex chain ID to avoid repetitive conversion
+    const hexChainId = toHex(this.activeChains.src.chainId, { size: 32 });
+
     // Gather transaction params
     const abi = RRC7755Inbox;
     const functionName = "fulfill";
     const args = [
-      toHex(this.activeChains.src.chainId, { size: 32 }),
+      hexChainId,
       sender,
       payload,
       attributes.getAttributes(),

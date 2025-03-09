@@ -128,10 +128,12 @@ export default class IndexerService {
       attributes: Hex[];
     };
 
+    const destChainId = fromHex(destinationChain, "number") as SupportedChains;
+
     const activeChains = {
       src: chains[sourceChain],
       l1: chains[config.l1],
-      dst: chains[fromHex(destinationChain, "number")],
+      dst: chains[destChainId],
     };
 
     if (!activeChains.src) {

@@ -156,6 +156,8 @@ export default class RewardMonitorService {
     proof: Hex,
     payTo: Address
   ): any[] {
+    // Pre-compute the destination chain ID in hex format to avoid redundant conversions
+    // This is particularly helpful when the same value needs to be used multiple times
     const destinationChainId = toHex(dstChainId, { size: 32 });
     const isStandardMessage = attributes.count() > 0;
 
