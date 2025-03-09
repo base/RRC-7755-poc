@@ -14,7 +14,7 @@ contract RecoverPaymasterFunds is MultiChain {
     function run() public {
         HelperConfig helperConfig = new HelperConfig();
 
-        for (uint256 i; i < chains.length; i++) {
+        for (uint256 i = 0; i < chains.length; i++) {
             vm.createSelectFork(chains[i].rpcUrl);
 
             HelperConfig.NetworkConfig memory cfg = helperConfig.getConfig(block.chainid);
