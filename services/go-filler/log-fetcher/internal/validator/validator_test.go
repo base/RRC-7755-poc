@@ -36,7 +36,7 @@ var srcChain = &chains.ChainConfig{
 	},
 }
 
-var parsedLog = &bindings.RIP7755OutboxCrossChainCallRequested{
+var parsedLog = &bindings.RRC7755OutboxCrossChainCallRequested{
 	Request: bindings.CrossChainRequest{
 		Calls: []bindings.Call{
 			{

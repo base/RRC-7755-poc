@@ -8,7 +8,7 @@ import (
 )
 
 type Handler interface {
-	HandleLog(chainId string, log *bindings.RIP7755OutboxCrossChainCallRequested) error
+	HandleLog(chainId string, log *bindings.RRC7755OutboxCrossChainCallRequested) error
 }
 
 type handler struct {
@@ -20,7 +20,7 @@ func NewHandler(srcChain *chains.ChainConfig, networks chains.Networks, queue st
 	return &handler{validator: validator.NewValidator(srcChain, networks), queue: queue}, nil
 }
 
-func (h *handler) HandleLog(chainId string, log *bindings.RIP7755OutboxCrossChainCallRequested) error {
+func (h *handler) HandleLog(chainId string, log *bindings.RRC7755OutboxCrossChainCallRequested) error {
 	err := h.validator.ValidateLog(log)
 	if err != nil {
 		return err

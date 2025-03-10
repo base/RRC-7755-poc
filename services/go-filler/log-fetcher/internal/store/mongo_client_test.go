@@ -51,7 +51,7 @@ func TestEnqueue(t *testing.T) {
 
 	mockConnection.On("InsertOne", mock.Anything, mock.Anything, mock.Anything).Return(&mongo.InsertOneResult{}, nil)
 
-	err := queue.Enqueue(&bindings.RIP7755OutboxCrossChainCallRequested{})
+	err := queue.Enqueue(&bindings.RRC7755OutboxCrossChainCallRequested{})
 
 	assert.NoError(t, err)
 }
@@ -59,7 +59,7 @@ func TestEnqueue(t *testing.T) {
 func TestEnqueuePassesParsedLogToInsertOne(t *testing.T) {
 	mockConnection := new(MongoConnectionMock)
 	queue := &queue{collection: mockConnection}
-	log := &bindings.RIP7755OutboxCrossChainCallRequested{}
+	log := &bindings.RRC7755OutboxCrossChainCallRequested{}
 	r := record{
 		RequestHash: log.RequestHash,
 		Request:     log.Request,
@@ -79,7 +79,7 @@ func TestEnqueueError(t *testing.T) {
 
 	mockConnection.On("InsertOne", mock.Anything, mock.Anything, mock.Anything).Return(&mongo.InsertOneResult{}, errors.New("error"))
 
-	err := queue.Enqueue(&bindings.RIP7755OutboxCrossChainCallRequested{})
+	err := queue.Enqueue(&bindings.RRC7755OutboxCrossChainCallRequested{})
 
 	assert.Error(t, err)
 }

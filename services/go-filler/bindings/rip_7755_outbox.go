@@ -60,113 +60,113 @@ type RIP7755InboxFulfillmentInfo struct {
 	Filler    common.Address
 }
 
-// RIP7755OutboxMetaData contains all meta data concerning the RIP7755Outbox contract.
-var RIP7755OutboxMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"CANCEL_DELAY_SECONDS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelRequest\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"claimReward\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"fulfillmentInfo\",\"type\":\"tuple\",\"internalType\":\"structRIP7755Inbox.FulfillmentInfo\",\"components\":[{\"name\":\"timestamp\",\"type\":\"uint96\",\"internalType\":\"uint96\"},{\"name\":\"filler\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"name\":\"proof\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"payTo\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"getRequestStatus\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumRIP7755Outbox.CrossChainCallStatus\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hashRequest\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"hashRequestMemory\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"requestCrossChainCall\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"event\",\"name\":\"CrossChainCallCanceled\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"CrossChainCallRequested\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"request\",\"type\":\"tuple\",\"indexed\":false,\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AddressEmptyCode\",\"inputs\":[{\"name\":\"target\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"AddressInsufficientBalance\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"CannotCancelRequestBeforeExpiry\",\"inputs\":[{\"name\":\"currentTimestamp\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ExpiryTooSoon\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"FailedInnerCall\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCaller\",\"inputs\":[{\"name\":\"caller\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"expectedCaller\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"InvalidStatus\",\"inputs\":[{\"name\":\"expected\",\"type\":\"uint8\",\"internalType\":\"enumRIP7755Outbox.CrossChainCallStatus\"},{\"name\":\"actual\",\"type\":\"uint8\",\"internalType\":\"enumRIP7755Outbox.CrossChainCallStatus\"}]},{\"type\":\"error\",\"name\":\"InvalidValue\",\"inputs\":[{\"name\":\"expected\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"received\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ProofValidationFailed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"SafeERC20FailedOperation\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}]}]",
+// RRC7755OutboxMetaData contains all meta data concerning the RRC7755Outbox contract.
+var RRC7755OutboxMetaData = &bind.MetaData{
+	ABI: "[{\"type\":\"function\",\"name\":\"CANCEL_DELAY_SECONDS\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"cancelRequest\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"claimReward\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"fulfillmentInfo\",\"type\":\"tuple\",\"internalType\":\"structRIP7755Inbox.FulfillmentInfo\",\"components\":[{\"name\":\"timestamp\",\"type\":\"uint96\",\"internalType\":\"uint96\"},{\"name\":\"filler\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"name\":\"proof\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"payTo\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"getRequestStatus\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumRRC7755Outbox.CrossChainCallStatus\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"hashRequest\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"hashRequestMemory\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"pure\"},{\"type\":\"function\",\"name\":\"requestCrossChainCall\",\"inputs\":[{\"name\":\"request\",\"type\":\"tuple\",\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"event\",\"name\":\"CrossChainCallCanceled\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"CrossChainCallRequested\",\"inputs\":[{\"name\":\"requestHash\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"request\",\"type\":\"tuple\",\"indexed\":false,\"internalType\":\"structCrossChainRequest\",\"components\":[{\"name\":\"requester\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"calls\",\"type\":\"tuple[]\",\"internalType\":\"structCall[]\",\"components\":[{\"name\":\"to\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"name\":\"proverContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChainId\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"inboxContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2Oracle\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"l2OracleStorageKey\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"rewardAsset\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"rewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"finalityDelaySeconds\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"precheckContract\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"precheckData\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AddressEmptyCode\",\"inputs\":[{\"name\":\"target\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"AddressInsufficientBalance\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"CannotCancelRequestBeforeExpiry\",\"inputs\":[{\"name\":\"currentTimestamp\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"expiry\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ExpiryTooSoon\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"FailedInnerCall\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCaller\",\"inputs\":[{\"name\":\"caller\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"expectedCaller\",\"type\":\"address\",\"internalType\":\"address\"}]},{\"type\":\"error\",\"name\":\"InvalidStatus\",\"inputs\":[{\"name\":\"expected\",\"type\":\"uint8\",\"internalType\":\"enumRRC7755Outbox.CrossChainCallStatus\"},{\"name\":\"actual\",\"type\":\"uint8\",\"internalType\":\"enumRRC7755Outbox.CrossChainCallStatus\"}]},{\"type\":\"error\",\"name\":\"InvalidValue\",\"inputs\":[{\"name\":\"expected\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"received\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"ProofValidationFailed\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"SafeERC20FailedOperation\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}]}]",
 }
 
-// RIP7755OutboxABI is the input ABI used to generate the binding from.
-// Deprecated: Use RIP7755OutboxMetaData.ABI instead.
-var RIP7755OutboxABI = RIP7755OutboxMetaData.ABI
+// RRC7755OutboxABI is the input ABI used to generate the binding from.
+// Deprecated: Use RRC7755OutboxMetaData.ABI instead.
+var RRC7755OutboxABI = RRC7755OutboxMetaData.ABI
 
-// RIP7755Outbox is an auto generated Go binding around an Ethereum contract.
-type RIP7755Outbox struct {
-	RIP7755OutboxCaller     // Read-only binding to the contract
-	RIP7755OutboxTransactor // Write-only binding to the contract
-	RIP7755OutboxFilterer   // Log filterer for contract events
+// RRC7755Outbox is an auto generated Go binding around an Ethereum contract.
+type RRC7755Outbox struct {
+	RRC7755OutboxCaller     // Read-only binding to the contract
+	RRC7755OutboxTransactor // Write-only binding to the contract
+	RRC7755OutboxFilterer   // Log filterer for contract events
 }
 
-// RIP7755OutboxCaller is an auto generated read-only Go binding around an Ethereum contract.
-type RIP7755OutboxCaller struct {
+// RRC7755OutboxCaller is an auto generated read-only Go binding around an Ethereum contract.
+type RRC7755OutboxCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// RIP7755OutboxTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type RIP7755OutboxTransactor struct {
+// RRC7755OutboxTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type RRC7755OutboxTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// RIP7755OutboxFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type RIP7755OutboxFilterer struct {
+// RRC7755OutboxFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type RRC7755OutboxFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// RIP7755OutboxSession is an auto generated Go binding around an Ethereum contract,
+// RRC7755OutboxSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type RIP7755OutboxSession struct {
-	Contract     *RIP7755Outbox    // Generic contract binding to set the session for
+type RRC7755OutboxSession struct {
+	Contract     *RRC7755Outbox    // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// RIP7755OutboxCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// RRC7755OutboxCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type RIP7755OutboxCallerSession struct {
-	Contract *RIP7755OutboxCaller // Generic contract caller binding to set the session for
+type RRC7755OutboxCallerSession struct {
+	Contract *RRC7755OutboxCaller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts        // Call options to use throughout this session
 }
 
-// RIP7755OutboxTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// RRC7755OutboxTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type RIP7755OutboxTransactorSession struct {
-	Contract     *RIP7755OutboxTransactor // Generic contract transactor binding to set the session for
+type RRC7755OutboxTransactorSession struct {
+	Contract     *RRC7755OutboxTransactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts        // Transaction auth options to use throughout this session
 }
 
-// RIP7755OutboxRaw is an auto generated low-level Go binding around an Ethereum contract.
-type RIP7755OutboxRaw struct {
-	Contract *RIP7755Outbox // Generic contract binding to access the raw methods on
+// RRC7755OutboxRaw is an auto generated low-level Go binding around an Ethereum contract.
+type RRC7755OutboxRaw struct {
+	Contract *RRC7755Outbox // Generic contract binding to access the raw methods on
 }
 
-// RIP7755OutboxCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type RIP7755OutboxCallerRaw struct {
-	Contract *RIP7755OutboxCaller // Generic read-only contract binding to access the raw methods on
+// RRC7755OutboxCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type RRC7755OutboxCallerRaw struct {
+	Contract *RRC7755OutboxCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// RIP7755OutboxTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type RIP7755OutboxTransactorRaw struct {
-	Contract *RIP7755OutboxTransactor // Generic write-only contract binding to access the raw methods on
+// RRC7755OutboxTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type RRC7755OutboxTransactorRaw struct {
+	Contract *RRC7755OutboxTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewRIP7755Outbox creates a new instance of RIP7755Outbox, bound to a specific deployed contract.
-func NewRIP7755Outbox(address common.Address, backend bind.ContractBackend) (*RIP7755Outbox, error) {
-	contract, err := bindRIP7755Outbox(address, backend, backend, backend)
+// NewRRC7755Outbox creates a new instance of RRC7755Outbox, bound to a specific deployed contract.
+func NewRRC7755Outbox(address common.Address, backend bind.ContractBackend) (*RRC7755Outbox, error) {
+	contract, err := bindRRC7755Outbox(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755Outbox{RIP7755OutboxCaller: RIP7755OutboxCaller{contract: contract}, RIP7755OutboxTransactor: RIP7755OutboxTransactor{contract: contract}, RIP7755OutboxFilterer: RIP7755OutboxFilterer{contract: contract}}, nil
+	return &RRC7755Outbox{RRC7755OutboxCaller: RRC7755OutboxCaller{contract: contract}, RRC7755OutboxTransactor: RRC7755OutboxTransactor{contract: contract}, RRC7755OutboxFilterer: RRC7755OutboxFilterer{contract: contract}}, nil
 }
 
-// NewRIP7755OutboxCaller creates a new read-only instance of RIP7755Outbox, bound to a specific deployed contract.
-func NewRIP7755OutboxCaller(address common.Address, caller bind.ContractCaller) (*RIP7755OutboxCaller, error) {
-	contract, err := bindRIP7755Outbox(address, caller, nil, nil)
+// NewRRC7755OutboxCaller creates a new read-only instance of RRC7755Outbox, bound to a specific deployed contract.
+func NewRRC7755OutboxCaller(address common.Address, caller bind.ContractCaller) (*RRC7755OutboxCaller, error) {
+	contract, err := bindRRC7755Outbox(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755OutboxCaller{contract: contract}, nil
+	return &RRC7755OutboxCaller{contract: contract}, nil
 }
 
-// NewRIP7755OutboxTransactor creates a new write-only instance of RIP7755Outbox, bound to a specific deployed contract.
-func NewRIP7755OutboxTransactor(address common.Address, transactor bind.ContractTransactor) (*RIP7755OutboxTransactor, error) {
-	contract, err := bindRIP7755Outbox(address, nil, transactor, nil)
+// NewRRC7755OutboxTransactor creates a new write-only instance of RRC7755Outbox, bound to a specific deployed contract.
+func NewRRC7755OutboxTransactor(address common.Address, transactor bind.ContractTransactor) (*RRC7755OutboxTransactor, error) {
+	contract, err := bindRRC7755Outbox(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755OutboxTransactor{contract: contract}, nil
+	return &RRC7755OutboxTransactor{contract: contract}, nil
 }
 
-// NewRIP7755OutboxFilterer creates a new log filterer instance of RIP7755Outbox, bound to a specific deployed contract.
-func NewRIP7755OutboxFilterer(address common.Address, filterer bind.ContractFilterer) (*RIP7755OutboxFilterer, error) {
-	contract, err := bindRIP7755Outbox(address, nil, nil, filterer)
+// NewRRC7755OutboxFilterer creates a new log filterer instance of RRC7755Outbox, bound to a specific deployed contract.
+func NewRRC7755OutboxFilterer(address common.Address, filterer bind.ContractFilterer) (*RRC7755OutboxFilterer, error) {
+	contract, err := bindRRC7755Outbox(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755OutboxFilterer{contract: contract}, nil
+	return &RRC7755OutboxFilterer{contract: contract}, nil
 }
 
-// bindRIP7755Outbox binds a generic wrapper to an already deployed contract.
-func bindRIP7755Outbox(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := RIP7755OutboxMetaData.GetAbi()
+// bindRRC7755Outbox binds a generic wrapper to an already deployed contract.
+func bindRRC7755Outbox(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := RRC7755OutboxMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -177,46 +177,46 @@ func bindRIP7755Outbox(address common.Address, caller bind.ContractCaller, trans
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_RIP7755Outbox *RIP7755OutboxRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _RIP7755Outbox.Contract.RIP7755OutboxCaller.contract.Call(opts, result, method, params...)
+func (_RRC7755Outbox *RRC7755OutboxRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _RRC7755Outbox.Contract.RRC7755OutboxCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_RIP7755Outbox *RIP7755OutboxRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.RIP7755OutboxTransactor.contract.Transfer(opts)
+func (_RRC7755Outbox *RRC7755OutboxRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.RRC7755OutboxTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_RIP7755Outbox *RIP7755OutboxRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.RIP7755OutboxTransactor.contract.Transact(opts, method, params...)
+func (_RRC7755Outbox *RRC7755OutboxRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.RRC7755OutboxTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_RIP7755Outbox *RIP7755OutboxCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _RIP7755Outbox.Contract.contract.Call(opts, result, method, params...)
+func (_RRC7755Outbox *RRC7755OutboxCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _RRC7755Outbox.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_RIP7755Outbox *RIP7755OutboxTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.contract.Transfer(opts)
+func (_RRC7755Outbox *RRC7755OutboxTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_RIP7755Outbox *RIP7755OutboxTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.contract.Transact(opts, method, params...)
+func (_RRC7755Outbox *RRC7755OutboxTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.contract.Transact(opts, method, params...)
 }
 
 // CANCELDELAYSECONDS is a free data retrieval call binding the contract method 0xdf130c43.
 //
 // Solidity: function CANCEL_DELAY_SECONDS() view returns(uint256)
-func (_RIP7755Outbox *RIP7755OutboxCaller) CANCELDELAYSECONDS(opts *bind.CallOpts) (*big.Int, error) {
+func (_RRC7755Outbox *RRC7755OutboxCaller) CANCELDELAYSECONDS(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _RIP7755Outbox.contract.Call(opts, &out, "CANCEL_DELAY_SECONDS")
+	err := _RRC7755Outbox.contract.Call(opts, &out, "CANCEL_DELAY_SECONDS")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -231,23 +231,23 @@ func (_RIP7755Outbox *RIP7755OutboxCaller) CANCELDELAYSECONDS(opts *bind.CallOpt
 // CANCELDELAYSECONDS is a free data retrieval call binding the contract method 0xdf130c43.
 //
 // Solidity: function CANCEL_DELAY_SECONDS() view returns(uint256)
-func (_RIP7755Outbox *RIP7755OutboxSession) CANCELDELAYSECONDS() (*big.Int, error) {
-	return _RIP7755Outbox.Contract.CANCELDELAYSECONDS(&_RIP7755Outbox.CallOpts)
+func (_RRC7755Outbox *RRC7755OutboxSession) CANCELDELAYSECONDS() (*big.Int, error) {
+	return _RRC7755Outbox.Contract.CANCELDELAYSECONDS(&_RRC7755Outbox.CallOpts)
 }
 
 // CANCELDELAYSECONDS is a free data retrieval call binding the contract method 0xdf130c43.
 //
 // Solidity: function CANCEL_DELAY_SECONDS() view returns(uint256)
-func (_RIP7755Outbox *RIP7755OutboxCallerSession) CANCELDELAYSECONDS() (*big.Int, error) {
-	return _RIP7755Outbox.Contract.CANCELDELAYSECONDS(&_RIP7755Outbox.CallOpts)
+func (_RRC7755Outbox *RRC7755OutboxCallerSession) CANCELDELAYSECONDS() (*big.Int, error) {
+	return _RRC7755Outbox.Contract.CANCELDELAYSECONDS(&_RRC7755Outbox.CallOpts)
 }
 
 // GetRequestStatus is a free data retrieval call binding the contract method 0x45d07664.
 //
 // Solidity: function getRequestStatus(bytes32 requestHash) view returns(uint8)
-func (_RIP7755Outbox *RIP7755OutboxCaller) GetRequestStatus(opts *bind.CallOpts, requestHash [32]byte) (uint8, error) {
+func (_RRC7755Outbox *RRC7755OutboxCaller) GetRequestStatus(opts *bind.CallOpts, requestHash [32]byte) (uint8, error) {
 	var out []interface{}
-	err := _RIP7755Outbox.contract.Call(opts, &out, "getRequestStatus", requestHash)
+	err := _RRC7755Outbox.contract.Call(opts, &out, "getRequestStatus", requestHash)
 
 	if err != nil {
 		return *new(uint8), err
@@ -262,23 +262,23 @@ func (_RIP7755Outbox *RIP7755OutboxCaller) GetRequestStatus(opts *bind.CallOpts,
 // GetRequestStatus is a free data retrieval call binding the contract method 0x45d07664.
 //
 // Solidity: function getRequestStatus(bytes32 requestHash) view returns(uint8)
-func (_RIP7755Outbox *RIP7755OutboxSession) GetRequestStatus(requestHash [32]byte) (uint8, error) {
-	return _RIP7755Outbox.Contract.GetRequestStatus(&_RIP7755Outbox.CallOpts, requestHash)
+func (_RRC7755Outbox *RRC7755OutboxSession) GetRequestStatus(requestHash [32]byte) (uint8, error) {
+	return _RRC7755Outbox.Contract.GetRequestStatus(&_RRC7755Outbox.CallOpts, requestHash)
 }
 
 // GetRequestStatus is a free data retrieval call binding the contract method 0x45d07664.
 //
 // Solidity: function getRequestStatus(bytes32 requestHash) view returns(uint8)
-func (_RIP7755Outbox *RIP7755OutboxCallerSession) GetRequestStatus(requestHash [32]byte) (uint8, error) {
-	return _RIP7755Outbox.Contract.GetRequestStatus(&_RIP7755Outbox.CallOpts, requestHash)
+func (_RRC7755Outbox *RRC7755OutboxCallerSession) GetRequestStatus(requestHash [32]byte) (uint8, error) {
+	return _RRC7755Outbox.Contract.GetRequestStatus(&_RRC7755Outbox.CallOpts, requestHash)
 }
 
 // HashRequest is a free data retrieval call binding the contract method 0xdd7d3b6a.
 //
 // Solidity: function hashRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxCaller) HashRequest(opts *bind.CallOpts, request CrossChainRequest) ([32]byte, error) {
+func (_RRC7755Outbox *RRC7755OutboxCaller) HashRequest(opts *bind.CallOpts, request CrossChainRequest) ([32]byte, error) {
 	var out []interface{}
-	err := _RIP7755Outbox.contract.Call(opts, &out, "hashRequest", request)
+	err := _RRC7755Outbox.contract.Call(opts, &out, "hashRequest", request)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -293,23 +293,23 @@ func (_RIP7755Outbox *RIP7755OutboxCaller) HashRequest(opts *bind.CallOpts, requ
 // HashRequest is a free data retrieval call binding the contract method 0xdd7d3b6a.
 //
 // Solidity: function hashRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxSession) HashRequest(request CrossChainRequest) ([32]byte, error) {
-	return _RIP7755Outbox.Contract.HashRequest(&_RIP7755Outbox.CallOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxSession) HashRequest(request CrossChainRequest) ([32]byte, error) {
+	return _RRC7755Outbox.Contract.HashRequest(&_RRC7755Outbox.CallOpts, request)
 }
 
 // HashRequest is a free data retrieval call binding the contract method 0xdd7d3b6a.
 //
 // Solidity: function hashRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxCallerSession) HashRequest(request CrossChainRequest) ([32]byte, error) {
-	return _RIP7755Outbox.Contract.HashRequest(&_RIP7755Outbox.CallOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxCallerSession) HashRequest(request CrossChainRequest) ([32]byte, error) {
+	return _RRC7755Outbox.Contract.HashRequest(&_RRC7755Outbox.CallOpts, request)
 }
 
 // HashRequestMemory is a free data retrieval call binding the contract method 0x9110312d.
 //
 // Solidity: function hashRequestMemory((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxCaller) HashRequestMemory(opts *bind.CallOpts, request CrossChainRequest) ([32]byte, error) {
+func (_RRC7755Outbox *RRC7755OutboxCaller) HashRequestMemory(opts *bind.CallOpts, request CrossChainRequest) ([32]byte, error) {
 	var out []interface{}
-	err := _RIP7755Outbox.contract.Call(opts, &out, "hashRequestMemory", request)
+	err := _RRC7755Outbox.contract.Call(opts, &out, "hashRequestMemory", request)
 
 	if err != nil {
 		return *new([32]byte), err
@@ -324,83 +324,83 @@ func (_RIP7755Outbox *RIP7755OutboxCaller) HashRequestMemory(opts *bind.CallOpts
 // HashRequestMemory is a free data retrieval call binding the contract method 0x9110312d.
 //
 // Solidity: function hashRequestMemory((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxSession) HashRequestMemory(request CrossChainRequest) ([32]byte, error) {
-	return _RIP7755Outbox.Contract.HashRequestMemory(&_RIP7755Outbox.CallOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxSession) HashRequestMemory(request CrossChainRequest) ([32]byte, error) {
+	return _RRC7755Outbox.Contract.HashRequestMemory(&_RRC7755Outbox.CallOpts, request)
 }
 
 // HashRequestMemory is a free data retrieval call binding the contract method 0x9110312d.
 //
 // Solidity: function hashRequestMemory((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) pure returns(bytes32)
-func (_RIP7755Outbox *RIP7755OutboxCallerSession) HashRequestMemory(request CrossChainRequest) ([32]byte, error) {
-	return _RIP7755Outbox.Contract.HashRequestMemory(&_RIP7755Outbox.CallOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxCallerSession) HashRequestMemory(request CrossChainRequest) ([32]byte, error) {
+	return _RRC7755Outbox.Contract.HashRequestMemory(&_RRC7755Outbox.CallOpts, request)
 }
 
 // CancelRequest is a paid mutator transaction binding the contract method 0xa309a4e2.
 //
 // Solidity: function cancelRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactor) CancelRequest(opts *bind.TransactOpts, request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.contract.Transact(opts, "cancelRequest", request)
+func (_RRC7755Outbox *RRC7755OutboxTransactor) CancelRequest(opts *bind.TransactOpts, request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.contract.Transact(opts, "cancelRequest", request)
 }
 
 // CancelRequest is a paid mutator transaction binding the contract method 0xa309a4e2.
 //
 // Solidity: function cancelRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) returns()
-func (_RIP7755Outbox *RIP7755OutboxSession) CancelRequest(request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.CancelRequest(&_RIP7755Outbox.TransactOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxSession) CancelRequest(request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.CancelRequest(&_RRC7755Outbox.TransactOpts, request)
 }
 
 // CancelRequest is a paid mutator transaction binding the contract method 0xa309a4e2.
 //
 // Solidity: function cancelRequest((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactorSession) CancelRequest(request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.CancelRequest(&_RIP7755Outbox.TransactOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxTransactorSession) CancelRequest(request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.CancelRequest(&_RRC7755Outbox.TransactOpts, request)
 }
 
 // ClaimReward is a paid mutator transaction binding the contract method 0x2dc6629c.
 //
 // Solidity: function claimReward((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request, (uint96,address) fulfillmentInfo, bytes proof, address payTo) returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactor) ClaimReward(opts *bind.TransactOpts, request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
-	return _RIP7755Outbox.contract.Transact(opts, "claimReward", request, fulfillmentInfo, proof, payTo)
+func (_RRC7755Outbox *RRC7755OutboxTransactor) ClaimReward(opts *bind.TransactOpts, request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
+	return _RRC7755Outbox.contract.Transact(opts, "claimReward", request, fulfillmentInfo, proof, payTo)
 }
 
 // ClaimReward is a paid mutator transaction binding the contract method 0x2dc6629c.
 //
 // Solidity: function claimReward((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request, (uint96,address) fulfillmentInfo, bytes proof, address payTo) returns()
-func (_RIP7755Outbox *RIP7755OutboxSession) ClaimReward(request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.ClaimReward(&_RIP7755Outbox.TransactOpts, request, fulfillmentInfo, proof, payTo)
+func (_RRC7755Outbox *RRC7755OutboxSession) ClaimReward(request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.ClaimReward(&_RRC7755Outbox.TransactOpts, request, fulfillmentInfo, proof, payTo)
 }
 
 // ClaimReward is a paid mutator transaction binding the contract method 0x2dc6629c.
 //
 // Solidity: function claimReward((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request, (uint96,address) fulfillmentInfo, bytes proof, address payTo) returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactorSession) ClaimReward(request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.ClaimReward(&_RIP7755Outbox.TransactOpts, request, fulfillmentInfo, proof, payTo)
+func (_RRC7755Outbox *RRC7755OutboxTransactorSession) ClaimReward(request CrossChainRequest, fulfillmentInfo RIP7755InboxFulfillmentInfo, proof []byte, payTo common.Address) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.ClaimReward(&_RRC7755Outbox.TransactOpts, request, fulfillmentInfo, proof, payTo)
 }
 
 // RequestCrossChainCall is a paid mutator transaction binding the contract method 0xe786188e.
 //
 // Solidity: function requestCrossChainCall((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) payable returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactor) RequestCrossChainCall(opts *bind.TransactOpts, request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.contract.Transact(opts, "requestCrossChainCall", request)
+func (_RRC7755Outbox *RRC7755OutboxTransactor) RequestCrossChainCall(opts *bind.TransactOpts, request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.contract.Transact(opts, "requestCrossChainCall", request)
 }
 
 // RequestCrossChainCall is a paid mutator transaction binding the contract method 0xe786188e.
 //
 // Solidity: function requestCrossChainCall((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) payable returns()
-func (_RIP7755Outbox *RIP7755OutboxSession) RequestCrossChainCall(request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.RequestCrossChainCall(&_RIP7755Outbox.TransactOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxSession) RequestCrossChainCall(request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.RequestCrossChainCall(&_RRC7755Outbox.TransactOpts, request)
 }
 
 // RequestCrossChainCall is a paid mutator transaction binding the contract method 0xe786188e.
 //
 // Solidity: function requestCrossChainCall((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request) payable returns()
-func (_RIP7755Outbox *RIP7755OutboxTransactorSession) RequestCrossChainCall(request CrossChainRequest) (*types.Transaction, error) {
-	return _RIP7755Outbox.Contract.RequestCrossChainCall(&_RIP7755Outbox.TransactOpts, request)
+func (_RRC7755Outbox *RRC7755OutboxTransactorSession) RequestCrossChainCall(request CrossChainRequest) (*types.Transaction, error) {
+	return _RRC7755Outbox.Contract.RequestCrossChainCall(&_RRC7755Outbox.TransactOpts, request)
 }
 
-// RIP7755OutboxCrossChainCallCanceledIterator is returned from FilterCrossChainCallCanceled and is used to iterate over the raw logs and unpacked data for CrossChainCallCanceled events raised by the RIP7755Outbox contract.
-type RIP7755OutboxCrossChainCallCanceledIterator struct {
-	Event *RIP7755OutboxCrossChainCallCanceled // Event containing the contract specifics and raw log
+// RRC7755OutboxCrossChainCallCanceledIterator is returned from FilterCrossChainCallCanceled and is used to iterate over the raw logs and unpacked data for CrossChainCallCanceled events raised by the RRC7755Outbox contract.
+type RRC7755OutboxCrossChainCallCanceledIterator struct {
+	Event *RRC7755OutboxCrossChainCallCanceled // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -414,7 +414,7 @@ type RIP7755OutboxCrossChainCallCanceledIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *RIP7755OutboxCrossChainCallCanceledIterator) Next() bool {
+func (it *RRC7755OutboxCrossChainCallCanceledIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -423,7 +423,7 @@ func (it *RIP7755OutboxCrossChainCallCanceledIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(RIP7755OutboxCrossChainCallCanceled)
+			it.Event = new(RRC7755OutboxCrossChainCallCanceled)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -438,7 +438,7 @@ func (it *RIP7755OutboxCrossChainCallCanceledIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(RIP7755OutboxCrossChainCallCanceled)
+		it.Event = new(RRC7755OutboxCrossChainCallCanceled)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -454,19 +454,19 @@ func (it *RIP7755OutboxCrossChainCallCanceledIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *RIP7755OutboxCrossChainCallCanceledIterator) Error() error {
+func (it *RRC7755OutboxCrossChainCallCanceledIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *RIP7755OutboxCrossChainCallCanceledIterator) Close() error {
+func (it *RRC7755OutboxCrossChainCallCanceledIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// RIP7755OutboxCrossChainCallCanceled represents a CrossChainCallCanceled event raised by the RIP7755Outbox contract.
-type RIP7755OutboxCrossChainCallCanceled struct {
+// RRC7755OutboxCrossChainCallCanceled represents a CrossChainCallCanceled event raised by the RRC7755Outbox contract.
+type RRC7755OutboxCrossChainCallCanceled struct {
 	RequestHash [32]byte
 	Raw         types.Log // Blockchain specific contextual infos
 }
@@ -474,31 +474,31 @@ type RIP7755OutboxCrossChainCallCanceled struct {
 // FilterCrossChainCallCanceled is a free log retrieval operation binding the contract event 0x1be39b5d9d7a848f6e4636bfaf521d9a6b7a351a73c7d0e945b79ffc7e169346.
 //
 // Solidity: event CrossChainCallCanceled(bytes32 indexed requestHash)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) FilterCrossChainCallCanceled(opts *bind.FilterOpts, requestHash [][32]byte) (*RIP7755OutboxCrossChainCallCanceledIterator, error) {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) FilterCrossChainCallCanceled(opts *bind.FilterOpts, requestHash [][32]byte) (*RRC7755OutboxCrossChainCallCanceledIterator, error) {
 
 	var requestHashRule []interface{}
 	for _, requestHashItem := range requestHash {
 		requestHashRule = append(requestHashRule, requestHashItem)
 	}
 
-	logs, sub, err := _RIP7755Outbox.contract.FilterLogs(opts, "CrossChainCallCanceled", requestHashRule)
+	logs, sub, err := _RRC7755Outbox.contract.FilterLogs(opts, "CrossChainCallCanceled", requestHashRule)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755OutboxCrossChainCallCanceledIterator{contract: _RIP7755Outbox.contract, event: "CrossChainCallCanceled", logs: logs, sub: sub}, nil
+	return &RRC7755OutboxCrossChainCallCanceledIterator{contract: _RRC7755Outbox.contract, event: "CrossChainCallCanceled", logs: logs, sub: sub}, nil
 }
 
 // WatchCrossChainCallCanceled is a free log subscription operation binding the contract event 0x1be39b5d9d7a848f6e4636bfaf521d9a6b7a351a73c7d0e945b79ffc7e169346.
 //
 // Solidity: event CrossChainCallCanceled(bytes32 indexed requestHash)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallCanceled(opts *bind.WatchOpts, sink chan<- *RIP7755OutboxCrossChainCallCanceled, requestHash [][32]byte) (event.Subscription, error) {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) WatchCrossChainCallCanceled(opts *bind.WatchOpts, sink chan<- *RRC7755OutboxCrossChainCallCanceled, requestHash [][32]byte) (event.Subscription, error) {
 
 	var requestHashRule []interface{}
 	for _, requestHashItem := range requestHash {
 		requestHashRule = append(requestHashRule, requestHashItem)
 	}
 
-	logs, sub, err := _RIP7755Outbox.contract.WatchLogs(opts, "CrossChainCallCanceled", requestHashRule)
+	logs, sub, err := _RRC7755Outbox.contract.WatchLogs(opts, "CrossChainCallCanceled", requestHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -508,8 +508,8 @@ func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallCanceled(opts *b
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(RIP7755OutboxCrossChainCallCanceled)
-				if err := _RIP7755Outbox.contract.UnpackLog(event, "CrossChainCallCanceled", log); err != nil {
+				event := new(RRC7755OutboxCrossChainCallCanceled)
+				if err := _RRC7755Outbox.contract.UnpackLog(event, "CrossChainCallCanceled", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -533,18 +533,18 @@ func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallCanceled(opts *b
 // ParseCrossChainCallCanceled is a log parse operation binding the contract event 0x1be39b5d9d7a848f6e4636bfaf521d9a6b7a351a73c7d0e945b79ffc7e169346.
 //
 // Solidity: event CrossChainCallCanceled(bytes32 indexed requestHash)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) ParseCrossChainCallCanceled(log types.Log) (*RIP7755OutboxCrossChainCallCanceled, error) {
-	event := new(RIP7755OutboxCrossChainCallCanceled)
-	if err := _RIP7755Outbox.contract.UnpackLog(event, "CrossChainCallCanceled", log); err != nil {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) ParseCrossChainCallCanceled(log types.Log) (*RRC7755OutboxCrossChainCallCanceled, error) {
+	event := new(RRC7755OutboxCrossChainCallCanceled)
+	if err := _RRC7755Outbox.contract.UnpackLog(event, "CrossChainCallCanceled", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// RIP7755OutboxCrossChainCallRequestedIterator is returned from FilterCrossChainCallRequested and is used to iterate over the raw logs and unpacked data for CrossChainCallRequested events raised by the RIP7755Outbox contract.
-type RIP7755OutboxCrossChainCallRequestedIterator struct {
-	Event *RIP7755OutboxCrossChainCallRequested // Event containing the contract specifics and raw log
+// RRC7755OutboxCrossChainCallRequestedIterator is returned from FilterCrossChainCallRequested and is used to iterate over the raw logs and unpacked data for CrossChainCallRequested events raised by the RRC7755Outbox contract.
+type RRC7755OutboxCrossChainCallRequestedIterator struct {
+	Event *RRC7755OutboxCrossChainCallRequested // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -558,7 +558,7 @@ type RIP7755OutboxCrossChainCallRequestedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *RIP7755OutboxCrossChainCallRequestedIterator) Next() bool {
+func (it *RRC7755OutboxCrossChainCallRequestedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -567,7 +567,7 @@ func (it *RIP7755OutboxCrossChainCallRequestedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(RIP7755OutboxCrossChainCallRequested)
+			it.Event = new(RRC7755OutboxCrossChainCallRequested)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -582,7 +582,7 @@ func (it *RIP7755OutboxCrossChainCallRequestedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(RIP7755OutboxCrossChainCallRequested)
+		it.Event = new(RRC7755OutboxCrossChainCallRequested)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -598,19 +598,19 @@ func (it *RIP7755OutboxCrossChainCallRequestedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *RIP7755OutboxCrossChainCallRequestedIterator) Error() error {
+func (it *RRC7755OutboxCrossChainCallRequestedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *RIP7755OutboxCrossChainCallRequestedIterator) Close() error {
+func (it *RRC7755OutboxCrossChainCallRequestedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// RIP7755OutboxCrossChainCallRequested represents a CrossChainCallRequested event raised by the RIP7755Outbox contract.
-type RIP7755OutboxCrossChainCallRequested struct {
+// RRC7755OutboxCrossChainCallRequested represents a CrossChainCallRequested event raised by the RRC7755Outbox contract.
+type RRC7755OutboxCrossChainCallRequested struct {
 	RequestHash [32]byte
 	Request     CrossChainRequest
 	Raw         types.Log // Blockchain specific contextual infos
@@ -619,31 +619,31 @@ type RIP7755OutboxCrossChainCallRequested struct {
 // FilterCrossChainCallRequested is a free log retrieval operation binding the contract event 0x91466a77985019372d6bde6728a808e42b6db50de58526264b5b3716bf7d11de.
 //
 // Solidity: event CrossChainCallRequested(bytes32 indexed requestHash, (address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) FilterCrossChainCallRequested(opts *bind.FilterOpts, requestHash [][32]byte) (*RIP7755OutboxCrossChainCallRequestedIterator, error) {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) FilterCrossChainCallRequested(opts *bind.FilterOpts, requestHash [][32]byte) (*RRC7755OutboxCrossChainCallRequestedIterator, error) {
 
 	var requestHashRule []interface{}
 	for _, requestHashItem := range requestHash {
 		requestHashRule = append(requestHashRule, requestHashItem)
 	}
 
-	logs, sub, err := _RIP7755Outbox.contract.FilterLogs(opts, "CrossChainCallRequested", requestHashRule)
+	logs, sub, err := _RRC7755Outbox.contract.FilterLogs(opts, "CrossChainCallRequested", requestHashRule)
 	if err != nil {
 		return nil, err
 	}
-	return &RIP7755OutboxCrossChainCallRequestedIterator{contract: _RIP7755Outbox.contract, event: "CrossChainCallRequested", logs: logs, sub: sub}, nil
+	return &RRC7755OutboxCrossChainCallRequestedIterator{contract: _RRC7755Outbox.contract, event: "CrossChainCallRequested", logs: logs, sub: sub}, nil
 }
 
 // WatchCrossChainCallRequested is a free log subscription operation binding the contract event 0x91466a77985019372d6bde6728a808e42b6db50de58526264b5b3716bf7d11de.
 //
 // Solidity: event CrossChainCallRequested(bytes32 indexed requestHash, (address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallRequested(opts *bind.WatchOpts, sink chan<- *RIP7755OutboxCrossChainCallRequested, requestHash [][32]byte) (event.Subscription, error) {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) WatchCrossChainCallRequested(opts *bind.WatchOpts, sink chan<- *RRC7755OutboxCrossChainCallRequested, requestHash [][32]byte) (event.Subscription, error) {
 
 	var requestHashRule []interface{}
 	for _, requestHashItem := range requestHash {
 		requestHashRule = append(requestHashRule, requestHashItem)
 	}
 
-	logs, sub, err := _RIP7755Outbox.contract.WatchLogs(opts, "CrossChainCallRequested", requestHashRule)
+	logs, sub, err := _RRC7755Outbox.contract.WatchLogs(opts, "CrossChainCallRequested", requestHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -653,8 +653,8 @@ func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallRequested(opts *
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(RIP7755OutboxCrossChainCallRequested)
-				if err := _RIP7755Outbox.contract.UnpackLog(event, "CrossChainCallRequested", log); err != nil {
+				event := new(RRC7755OutboxCrossChainCallRequested)
+				if err := _RRC7755Outbox.contract.UnpackLog(event, "CrossChainCallRequested", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -678,9 +678,9 @@ func (_RIP7755Outbox *RIP7755OutboxFilterer) WatchCrossChainCallRequested(opts *
 // ParseCrossChainCallRequested is a log parse operation binding the contract event 0x91466a77985019372d6bde6728a808e42b6db50de58526264b5b3716bf7d11de.
 //
 // Solidity: event CrossChainCallRequested(bytes32 indexed requestHash, (address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes) request)
-func (_RIP7755Outbox *RIP7755OutboxFilterer) ParseCrossChainCallRequested(log types.Log) (*RIP7755OutboxCrossChainCallRequested, error) {
-	event := new(RIP7755OutboxCrossChainCallRequested)
-	if err := _RIP7755Outbox.contract.UnpackLog(event, "CrossChainCallRequested", log); err != nil {
+func (_RRC7755Outbox *RRC7755OutboxFilterer) ParseCrossChainCallRequested(log types.Log) (*RRC7755OutboxCrossChainCallRequested, error) {
+	event := new(RRC7755OutboxCrossChainCallRequested)
+	if err := _RRC7755Outbox.contract.UnpackLog(event, "CrossChainCallRequested", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

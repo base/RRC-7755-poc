@@ -3,7 +3,7 @@
     {
       "hash": "0xa9d209f39f51d1a8ff507810b6a3751905692a3a9f28e49aaac78969c7389aca",
       "transactionType": "CALL",
-      "contractName": "RIP7755Outbox",
+      "contractName": "RRC7755Outbox",
       "contractAddress": "0xBCd5762cF9B07EF5597014c350CE2efB2b0DB2D2",
       "function": "requestCrossChainCall((address,(address,bytes,uint256)[],address,uint256,address,address,bytes32,address,uint256,uint256,uint256,uint256,address,bytes))",
       "arguments": [

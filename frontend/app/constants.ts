@@ -209,7 +209,7 @@ export const outboxABI = [
       {
         name: "",
         type: "uint8",
-        internalType: "enum RIP7755Outbox.CrossChainCallStatus",
+        internalType: "enum RRC7755Outbox.CrossChainCallStatus",
       },
     ],
     stateMutability: "view",
@@ -604,12 +604,12 @@ export const outboxABI = [
       {
         name: "expected",
         type: "uint8",
-        internalType: "enum RIP7755Outbox.CrossChainCallStatus",
+        internalType: "enum RRC7755Outbox.CrossChainCallStatus",
       },
       {
         name: "actual",
         type: "uint8",
-        internalType: "enum RIP7755Outbox.CrossChainCallStatus",
+        internalType: "enum RRC7755Outbox.CrossChainCallStatus",
       },
     ],
   },

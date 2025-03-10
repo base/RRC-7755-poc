@@ -11,7 +11,7 @@ import (
 )
 
 type Validator interface {
-	ValidateLog(*bindings.RIP7755OutboxCrossChainCallRequested) error
+	ValidateLog(*bindings.RRC7755OutboxCrossChainCallRequested) error
 }
 
 type validator struct {
@@ -23,7 +23,7 @@ func NewValidator(srcChain *chains.ChainConfig, networks chains.Networks) Valida
 	return &validator{srcChain: srcChain, networks: networks}
 }
 
-func (v *validator) ValidateLog(log *bindings.RIP7755OutboxCrossChainCallRequested) error {
+func (v *validator) ValidateLog(log *bindings.RRC7755OutboxCrossChainCallRequested) error {
 	logger.Info("Validating log")
 
 	// - Confirm valid proverContract address on source chain

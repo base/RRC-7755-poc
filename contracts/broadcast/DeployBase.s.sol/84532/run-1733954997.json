@@ -21,7 +21,7 @@
     {
       "hash": "0x6d197f28705bc2710a314e003525a69845feaf6bc7f364f165a963b757deea7c",
       "transactionType": "CREATE",
-      "contractName": "RIP7755OutboxToArbitrum",
+      "contractName": "RRC7755OutboxToArbitrum",
       "contractAddress": "0xcddcd048d3abde4c917391f65fe296b64841619c",
       "function": null,
       "arguments": null,
@@ -39,7 +39,7 @@
     {
       "hash": "0x0d455ad4af36cda32e5416e12287b3cdb8d81a8718d60baf2fd93a4a9f88c81e",
       "transactionType": "CREATE",
-      "contractName": "RIP7755OutboxToOPStack",
+      "contractName": "RRC7755OutboxToOPStack",
       "contractAddress": "0x558d42dfd77b6e0ad643f63c23aaba426359cd75",
       "function": null,
       "arguments": null,
