@@ -62,7 +62,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
 
     /// @notice Event emitted when a user sends a message to the `RRC7755Inbox`
     ///
-    /// @param outboxId         The keccak256 hash of the message request
+    /// @param messageId        The keccak256 hash of the message request
     /// @param sourceChain      The chain identifier of the source chain
     /// @param sender           The account address of the sender
     /// @param destinationChain The chain identifier of the destination chain
@@ -71,7 +71,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param value            The native asset value of the call
     /// @param attributes       The attributes to be included in the message
     event MessagePosted(
-        bytes32 indexed outboxId,
+        bytes32 indexed messageId,
         bytes32 sourceChain,
         bytes32 sender,
         bytes32 destinationChain,
@@ -199,7 +199,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         _validateProof(storageKey, receiver, attributes, proof, msg.sender);
@@ -242,13 +242,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice Cancels a pending request that has expired
     ///
     /// @custom:reverts If the request is not in the `CrossChainCallStatus.Requested` state
-    /// @custom:reverts If the requester attribute is not found in the attributes array
-    /// @custom:reverts If the delay attribute is not found in the attributes array
-    /// @custom:reverts If `msg.sender` is not the requester defined by the requester attribute
     /// @custom:reverts If the current block timestamp is less than the expiry timestamp plus the cancel delay seconds
-    /// @custom:reverts If the reward attribute is not found in the attributes array
     ///
-    /// @param destinationChain The CAIP-2 chain identifier of the destination chain
+    /// @param destinationChain The chain identifier of the destination chain
     /// @param receiver         The account address of the receiver
     /// @param payload          The encoded calls to be included in the request
     /// @param attributes       The attributes to be included in the message
@@ -260,7 +256,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         (bytes32 requester, uint256 expiry, bytes32 rewardAsset, uint256 rewardAmount) =
             getRequesterAndExpiryAndReward(attributes);
@@ -271,9 +267,6 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice Cancels a pending user op request that has expired
     ///
     /// @custom:reverts If the request is not in the `CrossChainCallStatus.Requested` state
-    /// @custom:reverts If the requester attribute is not found in the attributes array
-    /// @custom:reverts If the delay attribute is not found in the attributes array
-    /// @custom:reverts If `msg.sender` is not the requester defined by the requester attribute
     /// @custom:reverts If the current block timestamp is less than the expiry timestamp plus the cancel delay seconds
     ///
     /// @param destinationChain The chain identifier of the destination chain

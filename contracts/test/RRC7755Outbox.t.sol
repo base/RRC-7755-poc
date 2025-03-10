@@ -585,6 +585,23 @@ contract RRC7755OutboxTest is BaseTest {
         outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
+    function test_cancelMessage_reverts_requestDoesNotExist_submittedUserOp(uint256 rewardAmount)
+        external
+        fundAlice(rewardAmount)
+    {
+        vm.warp(outbox.CANCEL_DELAY_SECONDS() + 1);
+        TestMessage memory m = _submitUserOp(rewardAmount);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                RRC7755Outbox.InvalidStatus.selector,
+                RRC7755Outbox.CrossChainCallStatus.Requested,
+                RRC7755Outbox.CrossChainCallStatus.None
+            )
+        );
+        outbox.cancelMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
+    }
+
     function test_cancelMessage_reverts_requestAlreadyCanceled(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _submitRequest(rewardAmount);
 
