@@ -121,7 +121,7 @@ export default class RewardMonitorService {
 
       const txnHash = await signerService.writeContract(
         bytes32ToAddress(sender as Hex),
-        RIP7755Outbox,
+        RRC7755Outbox,
         functionName,
         args
       );

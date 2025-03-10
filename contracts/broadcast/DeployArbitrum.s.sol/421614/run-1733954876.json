@@ -21,7 +21,7 @@
     {
       "hash": "0xcd9b7c41e1bdd8ea5c9218bba4f8de9f68d3fa807be1255a45fbf3eb29729340",
       "transactionType": "CREATE",
-      "contractName": "RIP7755OutboxToOPStack",
+      "contractName": "RRC7755OutboxToOPStack",
       "contractAddress": "0x3ed4f0892020a9c57586c33554032be00fe379e4",
       "function": null,
       "arguments": null,

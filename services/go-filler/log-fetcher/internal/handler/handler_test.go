@@ -17,12 +17,12 @@ type QueueMock struct {
 	mock.Mock
 }
 
-func (v *ValidatorMock) ValidateLog(log *bindings.RIP7755OutboxCrossChainCallRequested) error {
+func (v *ValidatorMock) ValidateLog(log *bindings.RRC7755OutboxCrossChainCallRequested) error {
 	args := v.Called(log)
 	return args.Error(0)
 }
 
-func (q *QueueMock) Enqueue(log *bindings.RIP7755OutboxCrossChainCallRequested) error {
+func (q *QueueMock) Enqueue(log *bindings.RRC7755OutboxCrossChainCallRequested) error {
 	args := q.Called(log)
 	return args.Error(0)
 }
@@ -46,7 +46,7 @@ func TestHandler(t *testing.T) {
 	validatorMock := new(ValidatorMock)
 	queueMock := new(QueueMock)
 
-	log := &bindings.RIP7755OutboxCrossChainCallRequested{}
+	log := &bindings.RRC7755OutboxCrossChainCallRequested{}
 
 	validatorMock.On("ValidateLog", log).Return(nil)
 	queueMock.On("Enqueue", log).Return(nil)
@@ -65,7 +65,7 @@ func TestHandlerReturnsErrorFromValidator(t *testing.T) {
 	validatorMock := new(ValidatorMock)
 	queueMock := new(QueueMock)
 
-	log := &bindings.RIP7755OutboxCrossChainCallRequested{}
+	log := &bindings.RRC7755OutboxCrossChainCallRequested{}
 
 	validatorMock.On("ValidateLog", log).Return(errors.New("test error"))
 
@@ -80,7 +80,7 @@ func TestHandlerReturnsErrorFromQueue(t *testing.T) {
 	validatorMock := new(ValidatorMock)
 	queueMock := new(QueueMock)
 
-	log := &bindings.RIP7755OutboxCrossChainCallRequested{}
+	log := &bindings.RRC7755OutboxCrossChainCallRequested{}
 
 	validatorMock.On("ValidateLog", log).Return(nil)
 	queueMock.On("Enqueue", log).Return(errors.New("test error"))
@@ -96,7 +96,7 @@ func TestHandlerReturnsErrorFromWriteCheckpoint(t *testing.T) {
 	validatorMock := new(ValidatorMock)
 	queueMock := new(QueueMock)
 
-	log := &bindings.RIP7755OutboxCrossChainCallRequested{}
+	log := &bindings.RRC7755OutboxCrossChainCallRequested{}
 
 	validatorMock.On("ValidateLog", log).Return(nil)
 	queueMock.On("Enqueue", log).Return(nil)

@@ -25,9 +25,9 @@ type Listener interface {
 }
 
 type listener struct {
-	outbox        *bindings.RIP7755Outbox
+	outbox        *bindings.RRC7755Outbox
 	handler       handler.Handler
-	logs          chan *bindings.RIP7755OutboxCrossChainCallRequested
+	logs          chan *bindings.RRC7755OutboxCrossChainCallRequested
 	stop          chan struct{}
 	wg            sync.WaitGroup
 	pollRate      time.Duration
@@ -59,7 +59,7 @@ func NewListener(srcChainId *big.Int, networks chains.Networks, queue store.Queu
 	if err != nil {
 		return nil, fmt.Errorf("failed to get eth client: %v", err)
 	}
-	outbox, err := bindings.NewRIP7755Outbox(contractAddress, client)
+	outbox, err := bindings.NewRRC7755Outbox(contractAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Outbox contract binding: %v", err)
 	}
@@ -67,7 +67,7 @@ func NewListener(srcChainId *big.Int, networks chains.Networks, queue store.Queu
 	return &listener{
 		outbox:        outbox,
 		handler:       h,
-		logs:          make(chan *bindings.RIP7755OutboxCrossChainCallRequested),
+		logs:          make(chan *bindings.RRC7755OutboxCrossChainCallRequested),
 		stop:          make(chan struct{}),
 		pollReqCh:     make(chan struct{}, 1),
 		pollRate:      3 * time.Second,

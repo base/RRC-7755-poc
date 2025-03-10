@@ -12,7 +12,7 @@ import (
 )
 
 type Queue interface {
-	Enqueue(*bindings.RIP7755OutboxCrossChainCallRequested) error
+	Enqueue(*bindings.RRC7755OutboxCrossChainCallRequested) error
 	ReadCheckpoint(checkpointId string) (uint64, error)
 	WriteCheckpoint(checkpointId string, blockNumber uint64) error
 	Close() error
@@ -53,7 +53,7 @@ func NewQueue(ctx *cli.Context) (Queue, error) {
 	return &queue{client: client, collection: client.Database("calls").Collection("requests"), checkpoint: client.Database("calls").Collection("checkpoint")}, nil
 }
 
-func (q *queue) Enqueue(log *bindings.RIP7755OutboxCrossChainCallRequested) error {
+func (q *queue) Enqueue(log *bindings.RRC7755OutboxCrossChainCallRequested) error {
 	logger.Info("Sending job to queue")
 
 	r := record{
