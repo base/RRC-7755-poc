@@ -13,7 +13,7 @@ This repository serves as a proof of concept implementation of the RRC-7755 prot
 ## Components
 
 - [Contracts](./contracts/README.md)
-- [Fulfiller](./services/ts-filler/README.md)
+- [Fulfiller](./fulfiller/README.md)
 
 ## License
 
