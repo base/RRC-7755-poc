@@ -5,7 +5,6 @@ import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOper
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
-import {RRC7755OutboxToOPStack} from "../src/outboxes/RRC7755OutboxToOPStack.sol";
 
 import {MockOutbox} from "./mocks/MockOutbox.sol";
 import {BaseTest} from "./BaseTest.t.sol";
@@ -26,7 +25,6 @@ contract RRC7755OutboxTest is BaseTest {
     }
 
     MockOutbox outbox;
-    RRC7755OutboxToOPStack opStackOutbox;
 
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
@@ -46,7 +44,6 @@ contract RRC7755OutboxTest is BaseTest {
     function setUp() public {
         _setUp();
         outbox = new MockOutbox();
-        opStackOutbox = new RRC7755OutboxToOPStack();
         approveAddr = address(outbox);
     }
 
@@ -58,164 +55,6 @@ contract RRC7755OutboxTest is BaseTest {
         outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
 
         assertEq(outbox.getNonce(ALICE), before + 1);
-    }
-
-    function test_sendMessage_opStack_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(opStackOutbox)));
-        vm.prank(ALICE);
-        opStackOutbox.processAttributes(m.attributes, address(0), 0, false);
-    }
-
-    function test_sendMessage_opStack_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1000);
-
-        vm.expectRevert(RRC7755Outbox.InvalidNonce.selector);
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifInvalidAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[0] = abi.encodeWithSelector(bytes4(0x11111111));
-
-        vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.UnsupportedAttribute.selector, bytes4(0x11111111)));
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_incrementsNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        uint256 before = opStackOutbox.getNonce(ALICE);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-
-        assertEq(opStackOutbox.getNonce(ALICE), before + 1);
-    }
-
-    function test_sendMessage_opStack_reverts_ifMissingRewardAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[0] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _REWARD_ATTRIBUTE_SELECTOR)
-        );
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifMissingL2OracleAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _L2_ORACLE_ATTRIBUTE_SELECTOR)
-        );
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifMissingNonceAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[2] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _NONCE_ATTRIBUTE_SELECTOR)
-        );
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifMissingRequesterAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[3] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _REQUESTER_ATTRIBUTE_SELECTOR)
-        );
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifInvalidRequester(uint256 rewardAmount)
-        external
-        fundAccount(FILLER, rewardAmount)
-    {
-        vm.prank(FILLER);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(RRC7755Outbox.InvalidRequester.selector);
-        vm.prank(FILLER);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
-    function test_sendMessage_opStack_reverts_ifMissingDelayAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        vm.prank(ALICE);
-        mockErc20.approve(address(opStackOutbox), rewardAmount);
-
-        TestMessage memory m = _initMessage(rewardAmount / 2, false);
-        m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        m.attributes[1] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _DELAY_ATTRIBUTE_SELECTOR)
-        );
-        vm.prank(ALICE);
-        opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
     function test_sendMessage_reverts_ifInvalidNativeCurrency(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -761,34 +600,9 @@ contract RRC7755OutboxTest is BaseTest {
         assertTrue(supportsPrecheck);
     }
 
-    function test_opStack_supportsAttribute_returnsTrue_ifRewardAttribute() external view {
-        bool supportsReward = opStackOutbox.supportsAttribute(_REWARD_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsReward);
-    }
-
-    function test_opStack_supportsAttribute_returnsTrue_ifL2OracleAttribute() external view {
-        bool supportsL2Oracle = opStackOutbox.supportsAttribute(_L2_ORACLE_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsL2Oracle);
-    }
-
-    function test_opStack_supportsAttribute_returnsTrue_ifNonceAttribute() external view {
-        bool supportsNonce = opStackOutbox.supportsAttribute(_NONCE_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsNonce);
-    }
-
-    function test_opStack_supportsAttribute_returnsTrue_ifRequesterAttribute() external view {
-        bool supportsRequester = opStackOutbox.supportsAttribute(_REQUESTER_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsRequester);
-    }
-
-    function test_opStack_supportsAttribute_returnsTrue_ifDelayAttribute() external view {
-        bool supportsDelay = opStackOutbox.supportsAttribute(_DELAY_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsDelay);
-    }
-
-    function test_opStack_supportsAttribute_returnsTrue_ifPrecheckAttribute() external view {
-        bool supportsPrecheck = opStackOutbox.supportsAttribute(_PRECHECK_ATTRIBUTE_SELECTOR);
-        assertTrue(supportsPrecheck);
+    function test_supportsAttribute_returnsTrue_ifInboxAttribute() external view {
+        bool supportsInbox = outbox.supportsAttribute(_INBOX_ATTRIBUTE_SELECTOR);
+        assertTrue(supportsInbox);
     }
 
     function _submitRequest(uint256 rewardAmount) private returns (TestMessage memory) {

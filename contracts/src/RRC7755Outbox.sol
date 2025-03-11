@@ -297,7 +297,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @return _ True if the attribute selector is supported by this contract
     function supportsAttribute(bytes4 selector) public pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR;
+        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _INBOX_ATTRIBUTE_SELECTOR;
     }
 
     /// @notice Returns the required attributes for this contract
