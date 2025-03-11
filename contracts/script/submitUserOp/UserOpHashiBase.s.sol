@@ -29,13 +29,12 @@ contract UserOpHashiBase is UserOpBase {
         returns (PackedUserOperation memory)
     {
         PackedUserOperation memory userOp = abi.decode(payload, (PackedUserOperation));
-        (address ethAddress, uint256 ethAmount, address precheck, bytes[] memory attributes) =
-            abi.decode(_slice(userOp.paymasterAndData, 52), (address, uint256, address, bytes[]));
+        (bytes[] memory attributes) = abi.decode(_slice(userOp.paymasterAndData, 52), (bytes[]));
 
         bytes[] memory newAttributes = _convertAttributes(attributes, shoyuBashi, destinationChain);
 
         userOp.paymasterAndData = _encodePaymasterAndData(
-            _slice(userOp.paymasterAndData, 0, 52), ethAddress, ethAmount, precheck, newAttributes
+            _slice(userOp.paymasterAndData, 0, 52), newAttributes
         );
         return userOp;
     }
@@ -64,12 +63,9 @@ contract UserOpHashiBase is UserOpBase {
 
     function _encodePaymasterAndData(
         bytes memory prefix,
-        address ethAddress,
-        uint256 ethAmount,
-        address precheck,
         bytes[] memory attributes
     ) private pure returns (bytes memory) {
-        return abi.encodePacked(prefix, abi.encode(ethAddress, ethAmount, precheck, attributes));
+        return abi.encodePacked(prefix, abi.encode(attributes));
     }
 
     // Including to block from coverage report
