@@ -29,13 +29,12 @@ contract RRC7755OutboxTest is BaseTest {
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
     event MessagePosted(
-        bytes32 indexed outboxId,
+        bytes32 indexed messageId,
         bytes32 sourceChain,
         bytes32 sender,
         bytes32 destinationChain,
         bytes32 receiver,
         bytes payload,
-        uint256 value,
         bytes[] attributes
     );
     event CrossChainCallCompleted(bytes32 indexed requestHash, address submitter);
@@ -218,9 +217,7 @@ contract RRC7755OutboxTest is BaseTest {
 
         vm.prank(ALICE);
         vm.expectEmit(true, false, false, true);
-        emit MessagePosted(
-            messageId, m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, 0, m.attributes
-        );
+        emit MessagePosted(messageId, m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
         outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
@@ -252,7 +249,7 @@ contract RRC7755OutboxTest is BaseTest {
 
     function test_processAttributes_reverts_ifInvalidCaller() external {
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), address(outbox)));
-        outbox.processAttributes(new bytes[](0), address(outbox), 0, false);
+        outbox.processAttributes(bytes32(0), new bytes[](0), address(outbox), 0, false);
     }
 
     function test_claimReward_reverts_requestDoesNotExist(uint256 rewardAmount) external fundAlice(rewardAmount) {

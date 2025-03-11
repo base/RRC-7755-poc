@@ -16,6 +16,14 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     using HashiProver for bytes;
     using GlobalTypes for bytes32;
 
+    /// @notice This struct is used to process attributes while avoiding stack too deep errors
+    struct ProcessAttributesState {
+        /// @dev The selectors that are required for the request
+        bytes4[] requiredSelectors;
+        /// @dev Whether each required selector has been processed
+        bool[] processed;
+    }
+
     /// @notice The selector for the shoyuBashi attribute
     bytes4 internal constant _SHOYU_BASHI_ATTRIBUTE_SELECTOR = 0xda07e15d; // shoyuBashi(bytes32)
 
@@ -40,43 +48,48 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     ///
     /// @custom:reverts If the caller is not this contract
     ///
+    /// @param messageId    The keccak256 hash of the message request
     /// @param attributes   The attributes to be processed
     /// @param requester    The address of the requester
     /// @param value        The value of the message
     /// @param requireInbox Whether the inbox attribute is required
-    function processAttributes(bytes[] calldata attributes, address requester, uint256 value, bool requireInbox)
-        public
-        override
-    {
+    function processAttributes(
+        bytes32 messageId,
+        bytes[] calldata attributes,
+        address requester,
+        uint256 value,
+        bool requireInbox
+    ) public override {
         if (msg.sender != address(this)) {
             revert InvalidCaller({caller: msg.sender, expectedCaller: address(this)});
         }
 
         // Define required attributes and their handlers
-        bytes4[] memory requiredSelectors = _getRequiredAttributes(requireInbox);
-        bool[] memory processed = new bool[](requiredSelectors.length);
+        ProcessAttributesState memory state;
+        state.requiredSelectors = _getRequiredAttributes(requireInbox);
+        state.processed = new bool[](state.requiredSelectors.length);
 
         // Process all attributes
         for (uint256 i; i < attributes.length; i++) {
             bytes4 selector = bytes4(attributes[i]);
 
-            uint256 index = _findSelectorIndex(selector, requiredSelectors);
+            uint256 index = _findSelectorIndex(selector, state.requiredSelectors);
             if (index != type(uint256).max) {
-                if (processed[index]) {
+                if (state.processed[index]) {
                     revert DuplicateAttribute(selector);
                 }
 
-                _processAttribute(selector, attributes[i], requester, value);
-                processed[index] = true;
+                _processAttribute(selector, attributes[i], requester, value, messageId);
+                state.processed[index] = true;
             } else if (!_isOptionalAttribute(selector)) {
                 revert UnsupportedAttribute(selector);
             }
         }
 
         // Check for missing required attributes
-        for (uint256 i; i < requiredSelectors.length; i++) {
-            if (!processed[i]) {
-                revert MissingRequiredAttribute(requiredSelectors[i]);
+        for (uint256 i; i < state.requiredSelectors.length; i++) {
+            if (!state.processed[i]) {
+                revert MissingRequiredAttribute(state.requiredSelectors[i]);
             }
         }
     }
@@ -159,9 +172,15 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     }
 
     /// @dev Helper function to process individual attributes
-    function _processAttribute(bytes4 selector, bytes calldata attribute, address requester, uint256 value) private {
+    function _processAttribute(
+        bytes4 selector,
+        bytes calldata attribute,
+        address requester,
+        uint256 value,
+        bytes32 messageId
+    ) private {
         if (selector == _REWARD_ATTRIBUTE_SELECTOR) {
-            _handleRewardAttribute(attribute, requester, value);
+            _handleRewardAttribute(attribute, requester, value, messageId);
         } else if (selector == _NONCE_ATTRIBUTE_SELECTOR) {
             if (abi.decode(attribute[4:], (uint256)) != _incrementNonce(requester)) {
                 revert InvalidNonce();

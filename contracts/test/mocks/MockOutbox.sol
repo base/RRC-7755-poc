@@ -8,7 +8,10 @@ contract MockOutbox is RRC7755Outbox {
         return _getRequiredAttributes(isUserOp);
     }
 
-    function processAttributes(bytes[] calldata attributes, address requester, uint256 value, bool) public override {
+    function processAttributes(bytes32 messageId, bytes[] calldata attributes, address requester, uint256 value, bool)
+        public
+        override
+    {
         if (msg.sender != address(this)) {
             revert InvalidCaller({caller: msg.sender, expectedCaller: address(this)});
         }
@@ -19,7 +22,7 @@ contract MockOutbox is RRC7755Outbox {
             bytes4 attributeSelector = bytes4(attributes[i]);
 
             if (attributeSelector == _REWARD_ATTRIBUTE_SELECTOR && !attributeProcessed[0]) {
-                _handleRewardAttribute(attributes[i], requester, value);
+                _handleRewardAttribute(attributes[i], requester, value, messageId);
                 attributeProcessed[0] = true;
             } else if (attributeSelector == _DELAY_ATTRIBUTE_SELECTOR && !attributeProcessed[1]) {
                 _handleDelayAttribute(attributes[i]);

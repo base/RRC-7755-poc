@@ -5,6 +5,7 @@ import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {IInbox} from "./interfaces/IInbox.sol";
 import {IUserOpPrecheck} from "./interfaces/IUserOpPrecheck.sol";
@@ -184,8 +185,10 @@ contract Paymaster is IPaymaster {
             }
 
             // ERC20 deposit
-            _magicSpendBalance[msg.sender][tokenBytes32] += amount;
+            uint256 balanceBefore = IERC20(token).balanceOf(address(this));
             token.safeTransferFrom(msg.sender, address(this), amount);
+            uint256 balanceAfter = IERC20(token).balanceOf(address(this));
+            _magicSpendBalance[msg.sender][tokenBytes32] += balanceAfter - balanceBefore;
         }
     }
 
