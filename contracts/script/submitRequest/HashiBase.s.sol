@@ -19,13 +19,13 @@ contract HashiBase is StandardBase {
 
         bytes[] memory newAttributes = new bytes[](attributes.length + 1);
 
-        for (uint256 i; i < attributes.length - 1; i++) {
+        for (uint256 i = 0; i < attributes.length - 1; i++) {
             newAttributes[i] = attributes[i];
         }
 
         newAttributes[attributes.length - 1] =
             abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, srcConfig.shoyuBashi);
-        newAttributes[attributes.length] = abi.encodeWithSelector(_DESTINATION_CHAIN_SELECTOR, destinationChain);
+        newAttributes[attributes.length - 1] = abi.encodeWithSelector(_DESTINATION_CHAIN_SELECTOR, destinationChain);
 
         return (destinationChain, receiver, payload, newAttributes);
     }
