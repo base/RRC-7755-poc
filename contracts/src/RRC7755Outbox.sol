@@ -161,7 +161,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
 
-        bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         if (attributes.length == 0) {
             bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
@@ -202,7 +202,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         _validateProof(storageKey, receiver, attributes, proof, msg.sender);
@@ -259,7 +259,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         (bytes32 requester, uint256 expiry, bytes32 rewardAsset, uint256 rewardAmount) =
             getRequesterAndExpiryAndReward(messageId, attributes);
@@ -365,7 +365,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param attributes       The attributes to be included in the message
     ///
     /// @return _ The keccak256 hash of the message request
-    function getRequestId(
+    function getMessageId(
         bytes32 sourceChain,
         bytes32 sender,
         bytes32 destinationChain,
@@ -375,7 +375,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) public view override returns (bytes32) {
         return attributes.length == 0
             ? this.getUserOpHash(abi.decode(payload, (PackedUserOperation)), receiver, destinationChain)
-            : super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+            : super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
     }
 
     /// @notice Returns the requester, expiry, reward asset, and reward amount from the attributes array

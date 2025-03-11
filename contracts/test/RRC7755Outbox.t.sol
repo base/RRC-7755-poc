@@ -714,7 +714,7 @@ contract RRC7755OutboxTest is BaseTest {
     }
 
     function _deriveMessageId(TestMessage memory m) private view returns (bytes32) {
-        return outbox.getRequestId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
+        return outbox.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
     function _encodePaymasterAndData(address inbox, bytes[] memory attributes) private pure returns (bytes memory) {

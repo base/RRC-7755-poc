@@ -228,7 +228,7 @@ contract RRC7755InboxTest is BaseTest {
         }
 
         return TestMessage({
-            messageId: inbox.getRequestId(
+            messageId: inbox.getMessageId(
                 sourceChain, sender, bytes32(block.chainid), address(inbox).addressToBytes32(), payload, attributes
             ),
             sourceChain: sourceChain,

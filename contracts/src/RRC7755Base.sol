@@ -44,7 +44,7 @@ contract RRC7755Base {
     /// @param attributes       The attributes to be included in the message
     ///
     /// @return _ The keccak256 hash of the message request
-    function getRequestId(
+    function getMessageId(
         bytes32 sourceChain,
         bytes32 sender,
         bytes32 destinationChain,

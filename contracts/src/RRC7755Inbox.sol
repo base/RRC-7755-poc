@@ -112,7 +112,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
             PAYMASTER.fulfillerWithdraw(msg.sender, paymentRequest.token, paymentRequest.amount);
         }
 
-        bytes32 messageId = getRequestId(
+        bytes32 messageId = getMessageId(
             sourceChain, sender, bytes32(block.chainid), address(this).addressToBytes32(), payload, attributes
         );
 
