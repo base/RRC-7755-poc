@@ -83,14 +83,14 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
 
     /// @notice Event emitted when a cross chain call is successfully completed
     ///
-    /// @param requestHash The keccak256 hash of a `CrossChainRequest`
+    /// @param messageId The keccak256 hash of a `CrossChainRequest`
     /// @param submitter   The address of the fulfiller that successfully completed the cross chain call
-    event CrossChainCallCompleted(bytes32 indexed requestHash, address submitter);
+    event CrossChainCallCompleted(bytes32 indexed messageId, address submitter);
 
     /// @notice Event emitted when an expired cross chain call request is canceled
     ///
-    /// @param requestHash The keccak256 hash of a `CrossChainRequest`
-    event CrossChainCallCanceled(bytes32 indexed requestHash);
+    /// @param messageId The keccak256 hash of a `CrossChainRequest`
+    event CrossChainCallCanceled(bytes32 indexed messageId);
 
     /// @notice This error is thrown when a cross chain request specifies the native currency as the reward type but
     ///         does not send the correct `msg.value`
@@ -496,7 +496,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     }
 
     function _processClaim(bytes32 messageId, address payTo, bytes32 rewardAsset, uint256 rewardAmount) private {
-        _checkValidStatus({requestHash: messageId, expectedStatus: CrossChainCallStatus.Requested});
+        _checkValidStatus({messageId: messageId, expectedStatus: CrossChainCallStatus.Requested});
         _messageStatus[messageId] = CrossChainCallStatus.Completed;
         _sendReward(payTo, rewardAsset, rewardAmount);
 
@@ -510,7 +510,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 rewardAsset,
         uint256 rewardAmount
     ) private {
-        _checkValidStatus({requestHash: messageId, expectedStatus: CrossChainCallStatus.Requested});
+        _checkValidStatus({messageId: messageId, expectedStatus: CrossChainCallStatus.Requested});
 
         if (block.timestamp < expiry + CANCEL_DELAY_SECONDS) {
             revert CannotCancelRequestBeforeExpiry({
@@ -535,8 +535,8 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         }
     }
 
-    function _checkValidStatus(bytes32 requestHash, CrossChainCallStatus expectedStatus) private view {
-        CrossChainCallStatus status = _messageStatus[requestHash];
+    function _checkValidStatus(bytes32 messageId, CrossChainCallStatus expectedStatus) private view {
+        CrossChainCallStatus status = _messageStatus[messageId];
 
         if (status != expectedStatus) {
             revert InvalidStatus({expected: expectedStatus, actual: status});
