@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {EntryPoint, IEntryPoint, PackedUserOperation, UserOperationLib} from "account-abstraction/core/EntryPoint.sol";
+import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
 
@@ -636,6 +637,8 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
         // assertEq(paymaster.requestHash(), entryPoint.getUserOpHash(userOps[0]));
         // assertEq(paymaster.fulfiller(), address(signer.addr));
+        RRC7755Inbox.FulfillmentInfo memory info = inbox.getFulfillmentInfo(entryPoint.getUserOpHash(userOps[0]));
+        assertEq(info.fulfiller, address(signer.addr));
     }
 
     function test_validatePaymasterUserOp_doesNotStoreExecutionReceiptIfOpFails(uint256 amount)
@@ -655,6 +658,8 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
         // assertEq(paymaster.requestHash(), bytes32(0));
         // assertEq(paymaster.fulfiller(), address(0));
+        RRC7755Inbox.FulfillmentInfo memory info = inbox.getFulfillmentInfo(entryPoint.getUserOpHash(userOps[0]));
+        assertEq(info.fulfiller, address(0));
     }
 
     function test_validatePaymasterUserOp_decrementsMagicSpendBalance(uint256 amount, uint256 ethAmount)
@@ -755,6 +760,24 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         entryPoint.handleOps(userOps, payable(BUNDLER));
 
         assertEq(mockErc20.balanceOf(address(paymaster)), initialBalance - ethAmount);
+    }
+
+    function test_postOp_revertsIfNotCalledByEntryPoint(uint256 amount, uint256 ethAmount)
+        public
+        fundAccount(signer.addr, amount)
+        fundPaymasterBoth(signer.addr, amount)
+    {
+        vm.assume(ethAmount > 0);
+
+        PackedUserOperation[] memory userOps = _generateUserOps(address(mockErc20), ethAmount, address(0), 0);
+        uint256 maxCost = this.calculateMaxCost(userOps[0]);
+
+        vm.assume(ethAmount < type(uint256).max - maxCost && ethAmount + maxCost < amount);
+        _deposit(maxCost);
+
+        vm.prank(signer.addr, signer.addr);
+        vm.expectRevert(Paymaster.NotEntryPoint.selector);
+        paymaster.postOp(IPaymaster.PostOpMode.opSucceeded, "", 0, 0);
     }
 
     function _generateUserOps(address token, uint256 ethAmount, address precheck, uint256 nonce)

@@ -355,7 +355,7 @@ contract Paymaster is IPaymaster {
     ///                  opReverted  - User op reverted. The paymaster still has to pay for gas.
     ///                  postOpReverted - never passed in a call to postOp().
     /// @param context The context value returned by validatePaymasterUserOp
-    function postOp(PostOpMode mode, bytes calldata context, uint256, uint256) external {
+    function postOp(PostOpMode mode, bytes calldata context, uint256, uint256) external onlyEntryPoint {
         (Context memory ctx) = abi.decode(context, (Context));
 
         if (mode == PostOpMode.opSucceeded) {
