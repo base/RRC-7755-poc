@@ -25,15 +25,10 @@ contract Deploy is MultiChain {
             vm.startBroadcast();
 
             uint256 deployerNonce = vm.getNonce(deployer);
-            address inboxAddress = address(
-                uint160(
-                    uint256(
-                        keccak256(
-                            abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, (deployerNonce + 1).writeUint())
-                        )
-                    )
-                )
-            );
+            bytes[] memory encodedData = new bytes[](2);
+            encodedData[0] = abi.encodePacked(RLPWriter.writeAddress(deployer));
+            encodedData[1] = abi.encodePacked((deployerNonce + 1).writeUint());
+            address inboxAddress = address(uint160(uint256(keccak256(RLPWriter.writeList(encodedData)))));
 
             Paymaster paymaster = new Paymaster(ENTRY_POINT, inboxAddress);
             out = _record(out, address(paymaster), "Paymaster");
