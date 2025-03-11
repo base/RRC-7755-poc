@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 import {UserOperationLib} from "account-abstraction/core/UserOperationLib.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {GlobalTypes} from "./libraries/GlobalTypes.sol";
 import {NonceManager} from "./NonceManager.sol";
@@ -48,6 +49,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice A mapping from the keccak256 hash of a message request to its current status
     mapping(bytes32 messageId => CrossChainCallStatus status) private _messageStatus;
 
+    /// @notice A mapping from the keccak256 hash of a message request to the amount of reward received
+    mapping(bytes32 messageId => uint256 amountReceived) private _amountReceived;
+
     /// @notice The bytes32 representation of the address representing the native currency of the blockchain this
     ///         contract is deployed on following ERC-7528
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
@@ -68,7 +72,6 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param destinationChain The chain identifier of the destination chain
     /// @param receiver         The account address of the receiver
     /// @param payload          The messages to be included in the request
-    /// @param value            The native asset value of the call
     /// @param attributes       The attributes to be included in the message
     event MessagePosted(
         bytes32 indexed messageId,
@@ -77,20 +80,19 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 destinationChain,
         bytes32 receiver,
         bytes payload,
-        uint256 value,
         bytes[] attributes
     );
 
     /// @notice Event emitted when a cross chain call is successfully completed
     ///
-    /// @param requestHash The keccak256 hash of a `CrossChainRequest`
+    /// @param messageId The keccak256 hash of a `CrossChainRequest`
     /// @param submitter   The address of the fulfiller that successfully completed the cross chain call
-    event CrossChainCallCompleted(bytes32 indexed requestHash, address submitter);
+    event CrossChainCallCompleted(bytes32 indexed messageId, address submitter);
 
     /// @notice Event emitted when an expired cross chain call request is canceled
     ///
-    /// @param requestHash The keccak256 hash of a `CrossChainRequest`
-    event CrossChainCallCanceled(bytes32 indexed requestHash);
+    /// @param messageId The keccak256 hash of a `CrossChainRequest`
+    event CrossChainCallCanceled(bytes32 indexed messageId);
 
     /// @notice This error is thrown when a cross chain request specifies the native currency as the reward type but
     ///         does not send the correct `msg.value`
@@ -156,20 +158,21 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes calldata payload,
         bytes[] calldata attributes
     ) external payable returns (bytes32) {
-        if (attributes.length == 0) {
-            bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
-            this.processAttributes(userOpAttributes, msg.sender, msg.value, true);
-        } else {
-            this.processAttributes(attributes, msg.sender, msg.value, false);
-        }
-
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
 
-        bytes32 messageId = getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+
+        if (attributes.length == 0) {
+            bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
+            this.processAttributes(messageId, userOpAttributes, msg.sender, msg.value, true);
+        } else {
+            this.processAttributes(messageId, attributes, msg.sender, msg.value, false);
+        }
+
         _messageStatus[messageId] = CrossChainCallStatus.Requested;
 
-        emit MessagePosted(messageId, sourceChain, sender, destinationChain, receiver, payload, msg.value, attributes);
+        emit MessagePosted(messageId, sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         return messageId;
     }
@@ -199,12 +202,12 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         _validateProof(storageKey, receiver, attributes, proof, msg.sender);
 
-        (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(attributes);
+        (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(messageId, attributes);
 
         _processClaim(messageId, payTo, rewardAsset, rewardAmount);
     }
@@ -234,7 +237,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         bytes[] memory attributes = getUserOpAttributes(userOp);
         (bytes32 rewardAsset, uint256 rewardAmount) =
-            this.innerValidateProofAndGetReward(storageKey, attributes, proof, msg.sender);
+            this.innerValidateProofAndGetReward(messageId, storageKey, attributes, proof, msg.sender);
 
         _processClaim(messageId, payTo, rewardAsset, rewardAmount);
     }
@@ -256,10 +259,10 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) external {
         bytes32 sender = address(this).addressToBytes32();
         bytes32 sourceChain = bytes32(block.chainid);
-        bytes32 messageId = super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+        bytes32 messageId = super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         (bytes32 requester, uint256 expiry, bytes32 rewardAsset, uint256 rewardAmount) =
-            getRequesterAndExpiryAndReward(attributes);
+            getRequesterAndExpiryAndReward(messageId, attributes);
 
         _processCancellation(messageId, requester, expiry, rewardAsset, rewardAmount);
     }
@@ -277,7 +280,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes[] memory attributes = getUserOpAttributes(userOp);
 
         (bytes32 requester, uint256 expiry, bytes32 rewardAsset, uint256 rewardAmount) =
-            this.getRequesterAndExpiryAndReward(attributes);
+            this.getRequesterAndExpiryAndReward(messageId, attributes);
 
         _processCancellation(messageId, requester, expiry, rewardAsset, rewardAmount);
     }
@@ -297,7 +300,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @return _ True if the attribute selector is supported by this contract
     function supportsAttribute(bytes4 selector) public pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR;
+        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _INBOX_ATTRIBUTE_SELECTOR;
     }
 
     /// @notice Returns the required attributes for this contract
@@ -311,13 +314,18 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @custom:reverts If the caller is not this contract
     ///
+    /// @param messageId    The keccak256 hash of the message request
     /// @param attributes   The attributes to be processed
     /// @param requester    The address of the requester
     /// @param value        The value of the message
     /// @param requireInbox Whether the inbox attribute is required
-    function processAttributes(bytes[] calldata attributes, address requester, uint256 value, bool requireInbox)
-        public
-        virtual;
+    function processAttributes(
+        bytes32 messageId,
+        bytes[] calldata attributes,
+        address requester,
+        uint256 value,
+        bool requireInbox
+    ) public virtual;
 
     /// @notice Validates storage proofs and verifies fill
     ///
@@ -326,6 +334,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @custom:reverts If fillInfo.timestamp is less than crossChainCall.finalityDelaySeconds from current destination
     ///                 chain block timestamp
     ///
+    /// @param messageId               The keccak256 hash of the message request
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
     /// @param attributes              The attributes to be included in the message
@@ -334,12 +343,13 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @return _ The reward asset and reward amount
     function innerValidateProofAndGetReward(
+        bytes32 messageId,
         bytes memory inboxContractStorageKey,
         bytes[] calldata attributes,
         bytes calldata proofData,
         address caller
     ) public view returns (bytes32, uint256) {
-        (bytes32 rewardAsset, uint256 rewardAmount, bytes32 inbox) = _getRewardAndInbox(attributes);
+        (bytes32 rewardAsset, uint256 rewardAmount, bytes32 inbox) = _getRewardAndInbox(messageId, attributes);
         _validateProof(inboxContractStorageKey, inbox, attributes, proofData, caller);
         return (rewardAsset, rewardAmount);
     }
@@ -355,7 +365,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param attributes       The attributes to be included in the message
     ///
     /// @return _ The keccak256 hash of the message request
-    function getRequestId(
+    function getMessageId(
         bytes32 sourceChain,
         bytes32 sender,
         bytes32 destinationChain,
@@ -365,7 +375,35 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ) public view override returns (bytes32) {
         return attributes.length == 0
             ? this.getUserOpHash(abi.decode(payload, (PackedUserOperation)), receiver, destinationChain)
-            : super.getRequestId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+            : super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
+    }
+
+    /// @notice Returns the requester, expiry, reward asset, and reward amount from the attributes array
+    ///
+    /// @param messageId The keccak256 hash of the message request
+    /// @param attributes The attributes to be included in the message
+    ///
+    /// @return _ The requester, expiry, reward asset, and reward amount
+    function getRequesterAndExpiryAndReward(bytes32 messageId, bytes[] calldata attributes)
+        public
+        view
+        returns (bytes32, uint256, bytes32, uint256)
+    {
+        bytes32 requester;
+        uint256 expiry;
+        bytes32 rewardAsset;
+
+        for (uint256 i; i < attributes.length; i++) {
+            if (bytes4(attributes[i]) == _REQUESTER_ATTRIBUTE_SELECTOR) {
+                requester = abi.decode(attributes[i][4:], (bytes32));
+            } else if (bytes4(attributes[i]) == _DELAY_ATTRIBUTE_SELECTOR) {
+                (, expiry) = abi.decode(attributes[i][4:], (uint256, uint256));
+            } else if (bytes4(attributes[i]) == _REWARD_ATTRIBUTE_SELECTOR) {
+                (rewardAsset,) = abi.decode(attributes[i][4:], (bytes32, uint256));
+            }
+        }
+
+        return (requester, expiry, rewardAsset, _amountReceived[messageId]);
     }
 
     /// @notice Returns the hash of an ERC-4337 User Operation
@@ -383,43 +421,13 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         return keccak256(abi.encode(userOp.hash(), receiver.bytes32ToAddress(), uint256(destinationChain)));
     }
 
-    /// @notice Returns the requester, expiry, reward asset, and reward amount from the attributes array
-    ///
-    /// @param attributes The attributes to be included in the message
-    ///
-    /// @return _ The requester, expiry, reward asset, and reward amount
-    function getRequesterAndExpiryAndReward(bytes[] calldata attributes)
-        public
-        pure
-        returns (bytes32, uint256, bytes32, uint256)
-    {
-        bytes32 requester;
-        uint256 expiry;
-        bytes32 rewardAsset;
-        uint256 rewardAmount;
-
-        for (uint256 i; i < attributes.length; i++) {
-            if (bytes4(attributes[i]) == _REQUESTER_ATTRIBUTE_SELECTOR) {
-                requester = abi.decode(attributes[i][4:], (bytes32));
-            } else if (bytes4(attributes[i]) == _DELAY_ATTRIBUTE_SELECTOR) {
-                (, expiry) = abi.decode(attributes[i][4:], (uint256, uint256));
-            } else if (bytes4(attributes[i]) == _REWARD_ATTRIBUTE_SELECTOR) {
-                (rewardAsset, rewardAmount) = abi.decode(attributes[i][4:], (bytes32, uint256));
-            }
-        }
-
-        return (requester, expiry, rewardAsset, rewardAmount);
-    }
-
     /// @notice Returns the attributes for an ERC-4337 User Operation
     ///
     /// @param userOp The ERC-4337 User Operation
     ///
     /// @return _ The attributes for the ERC-4337 User Operation
     function getUserOpAttributes(PackedUserOperation calldata userOp) public pure returns (bytes[] memory) {
-        (,,, bytes[] memory userOpAttributes) =
-            abi.decode(userOp.paymasterAndData[52:], (address, uint256, address, bytes[]));
-        return userOpAttributes;
+        return abi.decode(userOp.paymasterAndData[52:], (bytes[]));
     }
 
     /// @notice Validates storage proofs and verifies fill
@@ -472,7 +480,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
             || selector == _INBOX_ATTRIBUTE_SELECTOR;
     }
 
-    function _handleRewardAttribute(bytes calldata attribute, address requester, uint256 value) internal {
+    function _handleRewardAttribute(bytes calldata attribute, address requester, uint256 value, bytes32 messageId)
+        internal
+    {
         (bytes32 rewardAsset, uint256 rewardAmount) = abi.decode(attribute[4:], (bytes32, uint256));
 
         bool usingNativeCurrency = rewardAsset == _NATIVE_ASSET;
@@ -483,7 +493,12 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         }
 
         if (!usingNativeCurrency) {
+            uint256 balanceBefore = IERC20(rewardAsset.bytes32ToAddress()).balanceOf(address(this));
             rewardAsset.bytes32ToAddress().safeTransferFrom(requester, address(this), rewardAmount);
+            uint256 balanceAfter = IERC20(rewardAsset.bytes32ToAddress()).balanceOf(address(this));
+            _amountReceived[messageId] = balanceAfter - balanceBefore;
+        } else {
+            _amountReceived[messageId] = rewardAmount;
         }
     }
 
@@ -496,7 +511,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     }
 
     function _processClaim(bytes32 messageId, address payTo, bytes32 rewardAsset, uint256 rewardAmount) private {
-        _checkValidStatus({requestHash: messageId, expectedStatus: CrossChainCallStatus.Requested});
+        _checkValidStatus({messageId: messageId, expectedStatus: CrossChainCallStatus.Requested});
         _messageStatus[messageId] = CrossChainCallStatus.Completed;
         _sendReward(payTo, rewardAsset, rewardAmount);
 
@@ -510,7 +525,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 rewardAsset,
         uint256 rewardAmount
     ) private {
-        _checkValidStatus({requestHash: messageId, expectedStatus: CrossChainCallStatus.Requested});
+        _checkValidStatus({messageId: messageId, expectedStatus: CrossChainCallStatus.Requested});
 
         if (block.timestamp < expiry + CANCEL_DELAY_SECONDS) {
             revert CannotCancelRequestBeforeExpiry({
@@ -535,8 +550,8 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         }
     }
 
-    function _checkValidStatus(bytes32 requestHash, CrossChainCallStatus expectedStatus) private view {
-        CrossChainCallStatus status = _messageStatus[requestHash];
+    function _checkValidStatus(bytes32 messageId, CrossChainCallStatus expectedStatus) private view {
+        CrossChainCallStatus status = _messageStatus[messageId];
 
         if (status != expectedStatus) {
             revert InvalidStatus({expected: expectedStatus, actual: status});
@@ -548,32 +563,34 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         return this.getUserOpAttributes(userOp);
     }
 
-    function _getReward(bytes[] calldata attributes) private pure returns (bytes32, uint256) {
+    function _getReward(bytes32 messageId, bytes[] calldata attributes) private view returns (bytes32, uint256) {
         bytes32 rewardAsset;
-        uint256 rewardAmount;
 
         for (uint256 i; i < attributes.length; i++) {
             if (bytes4(attributes[i]) == _REWARD_ATTRIBUTE_SELECTOR) {
-                (rewardAsset, rewardAmount) = abi.decode(attributes[i][4:], (bytes32, uint256));
+                (rewardAsset,) = abi.decode(attributes[i][4:], (bytes32, uint256));
             }
         }
 
-        return (rewardAsset, rewardAmount);
+        return (rewardAsset, _amountReceived[messageId]);
     }
 
-    function _getRewardAndInbox(bytes[] calldata attributes) private pure returns (bytes32, uint256, bytes32) {
+    function _getRewardAndInbox(bytes32 messageId, bytes[] calldata attributes)
+        private
+        view
+        returns (bytes32, uint256, bytes32)
+    {
         bytes32 rewardAsset;
-        uint256 rewardAmount;
         bytes32 inbox;
 
         for (uint256 i; i < attributes.length; i++) {
             if (bytes4(attributes[i]) == _REWARD_ATTRIBUTE_SELECTOR) {
-                (rewardAsset, rewardAmount) = abi.decode(attributes[i][4:], (bytes32, uint256));
+                (rewardAsset,) = abi.decode(attributes[i][4:], (bytes32, uint256));
             } else if (bytes4(attributes[i]) == _INBOX_ATTRIBUTE_SELECTOR) {
                 inbox = abi.decode(attributes[i][4:], (bytes32));
             }
         }
 
-        return (rewardAsset, rewardAmount, inbox);
+        return (rewardAsset, _amountReceived[messageId], inbox);
     }
 }

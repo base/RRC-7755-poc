@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {EntryPoint} from "account-abstraction/core/EntryPoint.sol";
+import {RLPWriter} from "optimism/packages/contracts-bedrock/src/libraries/rlp/RLPWriter.sol";
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 import {Paymaster} from "../src/Paymaster.sol";
@@ -13,6 +14,7 @@ import {BaseTest} from "./BaseTest.t.sol";
 
 contract RRC7755InboxTest is BaseTest {
     using GlobalTypes for address;
+    using RLPWriter for uint256;
 
     struct TestMessage {
         bytes32 messageId;
@@ -33,9 +35,20 @@ contract RRC7755InboxTest is BaseTest {
 
     function setUp() public {
         entryPoint = new EntryPoint();
-        paymaster = new Paymaster(address(entryPoint));
+
+        uint256 deployerNonce = vm.getNonce(address(this));
+        address inboxAddress = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(bytes1(0xd6), bytes1(0x94), address(this), (deployerNonce + 1).writeUint())
+                    )
+                )
+            )
+        );
+
+        paymaster = new Paymaster(address(entryPoint), inboxAddress);
         inbox = new RRC7755Inbox(address(paymaster));
-        paymaster.initialize(address(inbox));
         precheck = new MockPrecheck();
         target = new MockTarget();
         approveAddr = address(inbox);
@@ -215,7 +228,7 @@ contract RRC7755InboxTest is BaseTest {
         }
 
         return TestMessage({
-            messageId: inbox.getRequestId(
+            messageId: inbox.getMessageId(
                 sourceChain, sender, bytes32(block.chainid), address(inbox).addressToBytes32(), payload, attributes
             ),
             sourceChain: sourceChain,

@@ -54,7 +54,7 @@ contract ArbitrumOutboxTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(arbitrumOutbox)));
         vm.prank(ALICE);
-        arbitrumOutbox.processAttributes(m.attributes, address(0), 0, false);
+        arbitrumOutbox.processAttributes(bytes32(0), m.attributes, address(0), 0, false);
     }
 
     function test_sendMessage_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -216,7 +216,7 @@ contract ArbitrumOutboxTest is BaseTest {
         attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
         attributes = _setDelay(attributes, 10, block.timestamp + 2 weeks);
-        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
+        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
 
         return TestMessage({

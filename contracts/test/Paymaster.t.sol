@@ -2,8 +2,10 @@
 pragma solidity 0.8.24;
 
 import {EntryPoint, IEntryPoint, PackedUserOperation, UserOperationLib} from "account-abstraction/core/EntryPoint.sol";
+import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
+import {RLPWriter} from "optimism/packages/contracts-bedrock/src/libraries/rlp/RLPWriter.sol";
 
 import {BaseTest} from "./BaseTest.t.sol";
 import {MockAccount} from "./mocks/MockAccount.sol";
@@ -16,6 +18,7 @@ import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 contract PaymasterTest is BaseTest, MockEndpoint {
     using UserOperationLib for PackedUserOperation;
     using GlobalTypes for address;
+    using RLPWriter for uint256;
 
     address constant _ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
@@ -34,9 +37,20 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         entryPoint = IEntryPoint(new EntryPoint());
         mockAccount = new MockAccount();
 
-        paymaster = new Paymaster(address(entryPoint));
+        uint256 deployerNonce = vm.getNonce(address(this));
+        address inboxAddress = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(bytes1(0xd6), bytes1(0x94), address(this), (deployerNonce + 1).writeUint())
+                    )
+                )
+            )
+        );
+
+        paymaster = new Paymaster(address(entryPoint), inboxAddress);
         inbox = new RRC7755Inbox(address(paymaster));
-        paymaster.initialize(address(inbox));
+        require(address(inbox) == inboxAddress, "Pre-derived inbox address mismatch");
 
         approveAddr = address(paymaster);
         precheckAddress = address(new MockUserOpPrecheck());
@@ -68,21 +82,12 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
     function test_deployment_reverts_zeroAddressEntryPoint() external {
         vm.expectRevert(Paymaster.ZeroAddress.selector);
-        new Paymaster(address(0));
+        new Paymaster(address(0), address(inbox));
     }
 
-    function test_initialize_reverts_zeroAddressInbox() external {
+    function test_deployment_reverts_zeroAddressInbox() external {
         vm.expectRevert(Paymaster.ZeroAddress.selector);
-        paymaster.initialize(address(0));
-    }
-
-    function test_initialize_reverts_alreadyInitialized() external {
-        vm.expectRevert(Paymaster.AlreadyInitialized.selector);
-        paymaster.initialize(address(inbox));
-    }
-
-    function test_initialize_initializesInbox() external view {
-        assertEq(address(paymaster.inbox()), address(inbox));
+        new Paymaster(address(entryPoint), address(0));
     }
 
     function test_receive_incrementsMagicSpendBalance(uint256 amount) external fundAccount(signer.addr, amount) {
@@ -636,6 +641,8 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
         // assertEq(paymaster.requestHash(), entryPoint.getUserOpHash(userOps[0]));
         // assertEq(paymaster.fulfiller(), address(signer.addr));
+        RRC7755Inbox.FulfillmentInfo memory info = inbox.getFulfillmentInfo(entryPoint.getUserOpHash(userOps[0]));
+        assertEq(info.fulfiller, address(signer.addr));
     }
 
     function test_validatePaymasterUserOp_doesNotStoreExecutionReceiptIfOpFails(uint256 amount)
@@ -655,6 +662,8 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
         // assertEq(paymaster.requestHash(), bytes32(0));
         // assertEq(paymaster.fulfiller(), address(0));
+        RRC7755Inbox.FulfillmentInfo memory info = inbox.getFulfillmentInfo(entryPoint.getUserOpHash(userOps[0]));
+        assertEq(info.fulfiller, address(0));
     }
 
     function test_validatePaymasterUserOp_decrementsMagicSpendBalance(uint256 amount, uint256 ethAmount)
@@ -757,11 +766,33 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         assertEq(mockErc20.balanceOf(address(paymaster)), initialBalance - ethAmount);
     }
 
+    function test_postOp_revertsIfNotCalledByEntryPoint(uint256 amount, uint256 ethAmount)
+        public
+        fundAccount(signer.addr, amount)
+        fundPaymasterBoth(signer.addr, amount)
+    {
+        vm.assume(ethAmount > 0);
+
+        PackedUserOperation[] memory userOps = _generateUserOps(address(mockErc20), ethAmount, address(0), 0);
+        uint256 maxCost = this.calculateMaxCost(userOps[0]);
+
+        vm.assume(ethAmount < type(uint256).max - maxCost && ethAmount + maxCost < amount);
+        _deposit(maxCost);
+
+        vm.prank(signer.addr, signer.addr);
+        vm.expectRevert(Paymaster.NotEntryPoint.selector);
+        paymaster.postOp(IPaymaster.PostOpMode.opSucceeded, "", 0, 0);
+    }
+
     function _generateUserOps(address token, uint256 ethAmount, address precheck, uint256 nonce)
         private
         view
         returns (PackedUserOperation[] memory)
     {
+        bytes[] memory attributes = new bytes[](2);
+        attributes[0] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, token, ethAmount);
+        attributes[1] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR, precheck);
+
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = PackedUserOperation({
             sender: address(mockAccount),
@@ -773,23 +804,14 @@ contract PaymasterTest is BaseTest, MockEndpoint {
             accountGasLimits: bytes32(abi.encodePacked(uint128(1000000), uint128(1000000))),
             preVerificationGas: 100000,
             gasFees: bytes32(abi.encodePacked(uint128(1000000), uint128(1000000))),
-            paymasterAndData: _encodePaymasterAndData(token, ethAmount, precheck),
+            paymasterAndData: _encodePaymasterAndData(attributes),
             signature: abi.encode(0)
         });
         return userOps;
     }
 
-    function _encodePaymasterAndData(address token, uint256 ethAmount, address precheck)
-        private
-        view
-        returns (bytes memory)
-    {
-        return abi.encodePacked(
-            address(paymaster),
-            uint128(1000000),
-            uint128(1000000),
-            abi.encode(token.addressToBytes32(), ethAmount, precheck)
-        );
+    function _encodePaymasterAndData(bytes[] memory attributes) private view returns (bytes memory) {
+        return abi.encodePacked(address(paymaster), uint128(1000000), uint128(1000000), abi.encode(attributes));
     }
 
     function calculateMaxCost(PackedUserOperation calldata userOp) public pure returns (uint256) {

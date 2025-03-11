@@ -71,7 +71,7 @@ mint-mock-token:
 
 .PHONY: deploy
 deploy:
-	forge script script/Deploy.s.sol:Deploy --account $(ACCOUNT) --broadcast -vvvv
+	forge script script/Deploy.s.sol:Deploy --sig "run(address)" $$(cast wallet address --account $(ACCOUNT)) --account $(ACCOUNT) --broadcast -vvvv
 
 .PHONY: submit-base-to-arbitrum
 submit-base-to-arbitrum:

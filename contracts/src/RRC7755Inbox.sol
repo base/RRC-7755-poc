@@ -23,7 +23,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
     struct MainStorage {
         /// @notice A mapping from the keccak256 hash of a 7755 request to its `FulfillmentInfo`. This can only be set
         ///         once per call
-        mapping(bytes32 requestHash => FulfillmentInfo) fulfillmentInfo;
+        mapping(bytes32 messageId => FulfillmentInfo) fulfillmentInfo;
     }
 
     /// @notice Stored on verifyingContract and proved against in originationContract
@@ -52,9 +52,9 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
 
     /// @notice Event emitted when a cross chain call is fulfilled
     ///
-    /// @param requestHash The keccak256 hash of a 7755 request
+    /// @param messageId The keccak256 hash of a 7755 request
     /// @param fulfilledBy The account that fulfilled the cross chain call
-    event CallFulfilled(bytes32 indexed requestHash, address indexed fulfilledBy);
+    event CallFulfilled(bytes32 indexed messageId, address indexed fulfilledBy);
 
     /// @notice This error is thrown when an account attempts to submit a cross chain call that has already been
     ///         fulfilled
@@ -112,7 +112,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
             PAYMASTER.fulfillerWithdraw(msg.sender, paymentRequest.token, paymentRequest.amount);
         }
 
-        bytes32 messageId = getRequestId(
+        bytes32 messageId = getMessageId(
             sourceChain, sender, bytes32(block.chainid), address(this).addressToBytes32(), payload, attributes
         );
 
@@ -144,11 +144,11 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
 
     /// @notice Returns the stored fulfillment info for a passed in call hash
     ///
-    /// @param requestHash A keccak256 hash of a 7755 request
+    /// @param messageId A keccak256 hash of a 7755 request
     ///
     /// @return _ Fulfillment info stored for the call hash
-    function getFulfillmentInfo(bytes32 requestHash) external view returns (FulfillmentInfo memory) {
-        return _getFulfillmentInfo(requestHash);
+    function getFulfillmentInfo(bytes32 messageId) external view returns (FulfillmentInfo memory) {
+        return _getFulfillmentInfo(messageId);
     }
 
     function _sendCallsAndValidateMsgValue(bytes calldata payload) private {
@@ -175,13 +175,13 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
         }
     }
 
-    function _setFulfillmentInfo(bytes32 requestHash, address fulfiller) private {
+    function _setFulfillmentInfo(bytes32 messageId, address fulfiller) private {
         FulfillmentInfo memory fulfillmentInfo =
             FulfillmentInfo({timestamp: uint96(block.timestamp), fulfiller: fulfiller});
         MainStorage storage $ = _getMainStorage();
-        $.fulfillmentInfo[requestHash] = fulfillmentInfo;
+        $.fulfillmentInfo[messageId] = fulfillmentInfo;
 
-        emit CallFulfilled({requestHash: requestHash, fulfilledBy: fulfiller});
+        emit CallFulfilled({messageId: messageId, fulfilledBy: fulfiller});
     }
 
     function _runPrecheck(
@@ -198,9 +198,9 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
         IPrecheckContract(precheck).precheckCall(sourceChain, sender, payload, attributes, msg.sender);
     }
 
-    function _getFulfillmentInfo(bytes32 requestHash) private view returns (FulfillmentInfo memory) {
+    function _getFulfillmentInfo(bytes32 messageId) private view returns (FulfillmentInfo memory) {
         MainStorage storage $ = _getMainStorage();
-        return $.fulfillmentInfo[requestHash];
+        return $.fulfillmentInfo[messageId];
     }
 
     function _processAttributes(bytes[] calldata attributes)

@@ -5,6 +5,7 @@ import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 import {IInbox} from "./interfaces/IInbox.sol";
 import {IUserOpPrecheck} from "./interfaces/IUserOpPrecheck.sol";
@@ -40,11 +41,17 @@ contract Paymaster is IPaymaster {
     /// @notice The bytes32 address value to represent native currency
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
+    /// @notice The selector for the precheck attribute
+    bytes4 internal constant _PRECHECK_ATTRIBUTE_SELECTOR = 0xbef86027; // precheck(bytes32)
+
+    /// @notice The selector for requesting magic spend funds for call execution
+    bytes4 internal constant _MAGIC_SPEND_REQUEST_SELECTOR = 0x92041278; // magicSpendRequest(address,uint256)
+
     /// @notice The ERC-4337 EntryPoint contract
     IEntryPoint public immutable ENTRY_POINT;
 
     /// @notice The RRC-7755 Inbox contract
-    IInbox public inbox;
+    IInbox public immutable INBOX;
 
     /// @notice The address of the previous fulfiller to have sponsored a User Operation. If this is the zero address,
     ///         `totalTrackedGasBalance` MUST exactly equal ENTRY_POINT.balanceOf(address(this)). If this is not the
@@ -110,9 +117,6 @@ contract Paymaster is IPaymaster {
     /// @notice This error is thrown in `fulfillerWithdraw` when the caller is not the RRC-7755 Inbox contract
     error InvalidCaller();
 
-    /// @notice This error is thrown in `initialize` when the inbox address is already set
-    error AlreadyInitialized();
-
     /// @notice This event is emitted when a fulfiller's claim address is set
     ///
     /// @param fulfiller    The address of the fulfiller
@@ -138,12 +142,14 @@ contract Paymaster is IPaymaster {
     /// @custom:reverts If the EntryPoint contract is the zero address
     ///
     /// @param entryPoint The EntryPoint contract to use for the paymaster
-    constructor(address entryPoint) payable {
-        if (address(entryPoint) == address(0)) {
+    /// @param inbox The RRC-7755 Inbox contract to use for the paymaster
+    constructor(address entryPoint, address inbox) payable {
+        if (entryPoint == address(0) || inbox == address(0)) {
             revert ZeroAddress();
         }
 
         ENTRY_POINT = IEntryPoint(entryPoint);
+        INBOX = IInbox(inbox);
     }
 
     /// @dev A modifier that ensures the caller is the EntryPoint contract
@@ -157,23 +163,6 @@ contract Paymaster is IPaymaster {
     /// @notice A receive function that allows fulfillers to deposit eth into the paymaster
     receive() external payable {
         _depositEth();
-    }
-
-    /// @notice Initializes the paymaster with the RRC-7755 Inbox contract
-    ///
-    /// @custom:reverts If the inbox address is the zero address
-    /// @custom:reverts If the paymaster is already initialized
-    ///
-    /// @param inbox_ The address of the RRC-7755 Inbox contract
-    function initialize(address inbox_) external {
-        if (inbox_ == address(0)) {
-            revert ZeroAddress();
-        }
-        if (address(inbox) != address(0)) {
-            revert AlreadyInitialized();
-        }
-
-        inbox = IInbox(inbox_);
     }
 
     /// @notice Deposits eth or any ERC20 token for magic spend support
@@ -196,8 +185,10 @@ contract Paymaster is IPaymaster {
             }
 
             // ERC20 deposit
-            _magicSpendBalance[msg.sender][tokenBytes32] += amount;
+            uint256 balanceBefore = IERC20(token).balanceOf(address(this));
             token.safeTransferFrom(msg.sender, address(this), amount);
+            uint256 balanceAfter = IERC20(token).balanceOf(address(this));
+            _magicSpendBalance[msg.sender][tokenBytes32] += balanceAfter - balanceBefore;
         }
     }
 
@@ -232,7 +223,7 @@ contract Paymaster is IPaymaster {
     /// @param token     The token address to withdraw
     /// @param amount    The amount of eth or tokens to withdraw
     function fulfillerWithdraw(address fulfiller, address token, uint256 amount) external {
-        if (msg.sender != address(inbox)) {
+        if (msg.sender != address(INBOX)) {
             revert InvalidCaller();
         }
 
@@ -295,8 +286,9 @@ contract Paymaster is IPaymaster {
         returns (bytes memory context, uint256 validationData)
     {
         _settleBalanceDiff(maxCost);
+        (bytes[] memory attributes) = abi.decode(userOp.paymasterAndData[52:], (bytes[]));
         (bytes32 magicSpendToken, uint256 magicSpendAmount, address precheckContract) =
-            abi.decode(userOp.paymasterAndData[52:], (bytes32, uint256, address));
+            _extractMagicSpendAndPrecheck(attributes);
 
         address fulfiller = tx.origin;
         uint256 balance = _magicSpendBalance[fulfiller][magicSpendToken];
@@ -355,11 +347,11 @@ contract Paymaster is IPaymaster {
     ///                  opReverted  - User op reverted. The paymaster still has to pay for gas.
     ///                  postOpReverted - never passed in a call to postOp().
     /// @param context The context value returned by validatePaymasterUserOp
-    function postOp(PostOpMode mode, bytes calldata context, uint256, uint256) external {
+    function postOp(PostOpMode mode, bytes calldata context, uint256, uint256) external onlyEntryPoint {
         (Context memory ctx) = abi.decode(context, (Context));
 
         if (mode == PostOpMode.opSucceeded) {
-            inbox.storeReceipt(ctx.userOpHash, ctx.claimAddress);
+            INBOX.storeReceipt(ctx.userOpHash, ctx.claimAddress);
         }
 
         // If the sender's withdrawable balance is not equal to the eth amount, it means that the sender's balance was
@@ -504,5 +496,34 @@ contract Paymaster is IPaymaster {
         uint256 entryPointBalance = ENTRY_POINT.balanceOf(address(this)) + maxCost;
 
         return totalTrackedEthBalance_ - entryPointBalance;
+    }
+
+    function _extractMagicSpendAndPrecheck(bytes[] memory attributes)
+        private
+        pure
+        returns (bytes32, uint256, address)
+    {
+        bytes32 magicSpendToken;
+        uint256 magicSpendAmount;
+        address precheckContract;
+
+        for (uint256 i; i < attributes.length; i++) {
+            bytes4 selector = bytes4(attributes[i]);
+            if (selector == _MAGIC_SPEND_REQUEST_SELECTOR) {
+                (magicSpendToken, magicSpendAmount) = abi.decode(_attributeContents(attributes[i]), (bytes32, uint256));
+            } else if (selector == _PRECHECK_ATTRIBUTE_SELECTOR) {
+                precheckContract = abi.decode(_attributeContents(attributes[i]), (address));
+            }
+        }
+
+        return (magicSpendToken, magicSpendAmount, precheckContract);
+    }
+
+    function _attributeContents(bytes memory attribute) private pure returns (bytes memory) {
+        bytes memory data = attribute;
+        assembly {
+            data := add(data, 0x4)
+        }
+        return data;
     }
 }
