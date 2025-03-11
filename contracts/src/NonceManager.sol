@@ -27,7 +27,7 @@ abstract contract NonceManager {
         unchecked {
             // It would take ~3,671,743,063,080,802,746,815,416,825,491,118,336,290,905,145,409,708,398,004 years
             // with a sustained request rate of 1 trillion requests per second to overflow the nonce counter
-            return ++_nonce[account];
+            return _nonce[account]++;
         }
     }
 }

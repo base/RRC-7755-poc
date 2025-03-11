@@ -638,7 +638,7 @@ contract RRC7755OutboxTest is BaseTest {
         }
 
         attributes = _setDelay(attributes, 10, block.timestamp + 2 weeks);
-        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
+        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
 
         PackedUserOperation memory userOp;
@@ -664,7 +664,7 @@ contract RRC7755OutboxTest is BaseTest {
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
 
         attributes = _setDelay(attributes, 10, block.timestamp + 11);
-        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
+        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
         attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
 
