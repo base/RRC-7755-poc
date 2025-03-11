@@ -658,7 +658,7 @@ contract RRC7755OutboxTest is BaseTest {
     function _initUserOpMessage(uint256 rewardAmount) private view returns (TestMessage memory) {
         bytes32 destinationChain = bytes32(block.chainid);
         bytes32 sender = address(outbox).addressToBytes32();
-        bytes[] memory attributes = new bytes[](5);
+        bytes[] memory attributes = new bytes[](6);
 
         attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
@@ -667,6 +667,7 @@ contract RRC7755OutboxTest is BaseTest {
         attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
         attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
+        attributes[5] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, _NATIVE_ASSET, 0.0001 ether);
 
         PackedUserOperation memory userOp = PackedUserOperation({
             sender: address(0),
@@ -676,7 +677,7 @@ contract RRC7755OutboxTest is BaseTest {
             accountGasLimits: 0,
             preVerificationGas: 0,
             gasFees: 0,
-            paymasterAndData: _encodePaymasterAndData(address(outbox), attributes, ALICE),
+            paymasterAndData: _encodePaymasterAndData(address(outbox), attributes),
             signature: ""
         });
 
@@ -719,20 +720,9 @@ contract RRC7755OutboxTest is BaseTest {
         return outbox.getRequestId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
-    function _encodePaymasterAndData(address inbox, bytes[] memory attributes, address ethAddress)
-        private
-        pure
-        returns (bytes memory)
-    {
-        address precheck = address(0);
-        uint256 ethAmount = 0.0001 ether;
+    function _encodePaymasterAndData(address inbox, bytes[] memory attributes) private pure returns (bytes memory) {
         uint128 paymasterVerificationGasLimit = 100000;
         uint128 paymasterPostOpGasLimit = 100000;
-        return abi.encodePacked(
-            inbox,
-            paymasterVerificationGasLimit,
-            paymasterPostOpGasLimit,
-            abi.encode(ethAddress, ethAmount, precheck, attributes)
-        );
+        return abi.encodePacked(inbox, paymasterVerificationGasLimit, paymasterPostOpGasLimit, abi.encode(attributes));
     }
 }

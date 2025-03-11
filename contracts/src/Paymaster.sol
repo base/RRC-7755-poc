@@ -40,6 +40,12 @@ contract Paymaster is IPaymaster {
     /// @notice The bytes32 address value to represent native currency
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
 
+    /// @notice The selector for the precheck attribute
+    bytes4 internal constant _PRECHECK_ATTRIBUTE_SELECTOR = 0xbef86027; // precheck(bytes32)
+
+    /// @notice The selector for requesting magic spend funds for call execution
+    bytes4 internal constant _MAGIC_SPEND_REQUEST_SELECTOR = 0x92041278; // magicSpendRequest(address,uint256)
+
     /// @notice The ERC-4337 EntryPoint contract
     IEntryPoint public immutable ENTRY_POINT;
 
@@ -277,8 +283,9 @@ contract Paymaster is IPaymaster {
         returns (bytes memory context, uint256 validationData)
     {
         _settleBalanceDiff(maxCost);
+        (bytes[] memory attributes) = abi.decode(userOp.paymasterAndData[52:], (bytes[]));
         (bytes32 magicSpendToken, uint256 magicSpendAmount, address precheckContract) =
-            abi.decode(userOp.paymasterAndData[52:], (bytes32, uint256, address));
+            _extractMagicSpendAndPrecheck(attributes);
 
         address fulfiller = tx.origin;
         uint256 balance = _magicSpendBalance[fulfiller][magicSpendToken];
@@ -486,5 +493,34 @@ contract Paymaster is IPaymaster {
         uint256 entryPointBalance = ENTRY_POINT.balanceOf(address(this)) + maxCost;
 
         return totalTrackedEthBalance_ - entryPointBalance;
+    }
+
+    function _extractMagicSpendAndPrecheck(bytes[] memory attributes)
+        private
+        pure
+        returns (bytes32, uint256, address)
+    {
+        bytes32 magicSpendToken;
+        uint256 magicSpendAmount;
+        address precheckContract;
+
+        for (uint256 i; i < attributes.length; i++) {
+            bytes4 selector = bytes4(attributes[i]);
+            if (selector == _MAGIC_SPEND_REQUEST_SELECTOR) {
+                (magicSpendToken, magicSpendAmount) = abi.decode(_attributeContents(attributes[i]), (bytes32, uint256));
+            } else if (selector == _PRECHECK_ATTRIBUTE_SELECTOR) {
+                precheckContract = abi.decode(_attributeContents(attributes[i]), (address));
+            }
+        }
+
+        return (magicSpendToken, magicSpendAmount, precheckContract);
+    }
+
+    function _attributeContents(bytes memory attribute) private pure returns (bytes memory) {
+        bytes memory data = attribute;
+        assembly {
+            data := add(data, 0x4)
+        }
+        return data;
     }
 }

@@ -789,6 +789,10 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         view
         returns (PackedUserOperation[] memory)
     {
+        bytes[] memory attributes = new bytes[](2);
+        attributes[0] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, token, ethAmount);
+        attributes[1] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR, precheck);
+
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = PackedUserOperation({
             sender: address(mockAccount),
@@ -800,23 +804,14 @@ contract PaymasterTest is BaseTest, MockEndpoint {
             accountGasLimits: bytes32(abi.encodePacked(uint128(1000000), uint128(1000000))),
             preVerificationGas: 100000,
             gasFees: bytes32(abi.encodePacked(uint128(1000000), uint128(1000000))),
-            paymasterAndData: _encodePaymasterAndData(token, ethAmount, precheck),
+            paymasterAndData: _encodePaymasterAndData(attributes),
             signature: abi.encode(0)
         });
         return userOps;
     }
 
-    function _encodePaymasterAndData(address token, uint256 ethAmount, address precheck)
-        private
-        view
-        returns (bytes memory)
-    {
-        return abi.encodePacked(
-            address(paymaster),
-            uint128(1000000),
-            uint128(1000000),
-            abi.encode(token.addressToBytes32(), ethAmount, precheck)
-        );
+    function _encodePaymasterAndData(bytes[] memory attributes) private view returns (bytes memory) {
+        return abi.encodePacked(address(paymaster), uint128(1000000), uint128(1000000), abi.encode(attributes));
     }
 
     function calculateMaxCost(PackedUserOperation calldata userOp) public pure returns (uint256) {

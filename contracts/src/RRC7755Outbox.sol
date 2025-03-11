@@ -417,9 +417,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @return _ The attributes for the ERC-4337 User Operation
     function getUserOpAttributes(PackedUserOperation calldata userOp) public pure returns (bytes[] memory) {
-        (,,, bytes[] memory userOpAttributes) =
-            abi.decode(userOp.paymasterAndData[52:], (address, uint256, address, bytes[]));
-        return userOpAttributes;
+        return abi.decode(userOp.paymasterAndData[52:], (bytes[]));
     }
 
     /// @notice Validates storage proofs and verifies fill
