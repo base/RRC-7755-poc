@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Strings} from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import {RLPWriter} from "optimism/packages/contracts-bedrock/src/libraries/rlp/RLPWriter.sol";
 
 import {MultiChain} from "./MultiChain.sol";
 import {RRC7755OutboxToArbitrum} from "../src/outboxes/RRC7755OutboxToArbitrum.sol";
@@ -11,7 +12,9 @@ import {Paymaster} from "../src/Paymaster.sol";
 import {RRC7755Inbox} from "../src/RRC7755Inbox.sol";
 
 contract Deploy is MultiChain {
-    function run() external {
+    using RLPWriter for uint256;
+
+    function run(address deployer) external {
         string memory out = "{";
 
         for (uint256 i; i < chains.length; i++) {
@@ -21,13 +24,23 @@ contract Deploy is MultiChain {
 
             vm.startBroadcast();
 
-            Paymaster paymaster = new Paymaster(ENTRY_POINT);
+            uint256 deployerNonce = vm.getNonce(deployer);
+            address inboxAddress = address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, (deployerNonce + 1).writeUint())
+                        )
+                    )
+                )
+            );
+
+            Paymaster paymaster = new Paymaster(ENTRY_POINT, inboxAddress);
             out = _record(out, address(paymaster), "Paymaster");
 
             RRC7755Inbox inbox = new RRC7755Inbox(address(paymaster));
+            require(address(inbox) == inboxAddress, "Pre-derived inbox address mismatch");
             out = _record(out, address(inbox), "RRC7755Inbox");
-
-            paymaster.initialize(address(inbox));
 
             if (block.chainid != 421614) {
                 out = _record(out, address(new RRC7755OutboxToArbitrum()), "RRC7755OutboxToArbitrum");

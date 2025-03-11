@@ -5,6 +5,7 @@ import {EntryPoint, IEntryPoint, PackedUserOperation, UserOperationLib} from "ac
 import {IPaymaster} from "account-abstraction/interfaces/IPaymaster.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
+import {RLPWriter} from "optimism/packages/contracts-bedrock/src/libraries/rlp/RLPWriter.sol";
 
 import {BaseTest} from "./BaseTest.t.sol";
 import {MockAccount} from "./mocks/MockAccount.sol";
@@ -17,6 +18,7 @@ import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
 contract PaymasterTest is BaseTest, MockEndpoint {
     using UserOperationLib for PackedUserOperation;
     using GlobalTypes for address;
+    using RLPWriter for uint256;
 
     address constant _ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
@@ -35,9 +37,20 @@ contract PaymasterTest is BaseTest, MockEndpoint {
         entryPoint = IEntryPoint(new EntryPoint());
         mockAccount = new MockAccount();
 
-        paymaster = new Paymaster(address(entryPoint));
+        uint256 deployerNonce = vm.getNonce(address(this));
+        address inboxAddress = address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(bytes1(0xd6), bytes1(0x94), address(this), (deployerNonce + 1).writeUint())
+                    )
+                )
+            )
+        );
+
+        paymaster = new Paymaster(address(entryPoint), inboxAddress);
         inbox = new RRC7755Inbox(address(paymaster));
-        paymaster.initialize(address(inbox));
+        require(address(inbox) == inboxAddress, "Pre-derived inbox address mismatch");
 
         approveAddr = address(paymaster);
         precheckAddress = address(new MockUserOpPrecheck());
@@ -69,21 +82,12 @@ contract PaymasterTest is BaseTest, MockEndpoint {
 
     function test_deployment_reverts_zeroAddressEntryPoint() external {
         vm.expectRevert(Paymaster.ZeroAddress.selector);
-        new Paymaster(address(0));
+        new Paymaster(address(0), address(inbox));
     }
 
-    function test_initialize_reverts_zeroAddressInbox() external {
+    function test_deployment_reverts_zeroAddressInbox() external {
         vm.expectRevert(Paymaster.ZeroAddress.selector);
-        paymaster.initialize(address(0));
-    }
-
-    function test_initialize_reverts_alreadyInitialized() external {
-        vm.expectRevert(Paymaster.AlreadyInitialized.selector);
-        paymaster.initialize(address(inbox));
-    }
-
-    function test_initialize_initializesInbox() external view {
-        assertEq(address(paymaster.inbox()), address(inbox));
+        new Paymaster(address(entryPoint), address(0));
     }
 
     function test_receive_incrementsMagicSpendBalance(uint256 amount) external fundAccount(signer.addr, amount) {

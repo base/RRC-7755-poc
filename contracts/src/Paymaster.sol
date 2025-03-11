@@ -44,7 +44,7 @@ contract Paymaster is IPaymaster {
     IEntryPoint public immutable ENTRY_POINT;
 
     /// @notice The RRC-7755 Inbox contract
-    IInbox public inbox;
+    IInbox public immutable INBOX;
 
     /// @notice The address of the previous fulfiller to have sponsored a User Operation. If this is the zero address,
     ///         `totalTrackedGasBalance` MUST exactly equal ENTRY_POINT.balanceOf(address(this)). If this is not the
@@ -110,9 +110,6 @@ contract Paymaster is IPaymaster {
     /// @notice This error is thrown in `fulfillerWithdraw` when the caller is not the RRC-7755 Inbox contract
     error InvalidCaller();
 
-    /// @notice This error is thrown in `initialize` when the inbox address is already set
-    error AlreadyInitialized();
-
     /// @notice This event is emitted when a fulfiller's claim address is set
     ///
     /// @param fulfiller    The address of the fulfiller
@@ -138,12 +135,14 @@ contract Paymaster is IPaymaster {
     /// @custom:reverts If the EntryPoint contract is the zero address
     ///
     /// @param entryPoint The EntryPoint contract to use for the paymaster
-    constructor(address entryPoint) payable {
-        if (address(entryPoint) == address(0)) {
+    /// @param inbox The RRC-7755 Inbox contract to use for the paymaster
+    constructor(address entryPoint, address inbox) payable {
+        if (entryPoint == address(0) || inbox == address(0)) {
             revert ZeroAddress();
         }
 
         ENTRY_POINT = IEntryPoint(entryPoint);
+        INBOX = IInbox(inbox);
     }
 
     /// @dev A modifier that ensures the caller is the EntryPoint contract
@@ -157,23 +156,6 @@ contract Paymaster is IPaymaster {
     /// @notice A receive function that allows fulfillers to deposit eth into the paymaster
     receive() external payable {
         _depositEth();
-    }
-
-    /// @notice Initializes the paymaster with the RRC-7755 Inbox contract
-    ///
-    /// @custom:reverts If the inbox address is the zero address
-    /// @custom:reverts If the paymaster is already initialized
-    ///
-    /// @param inbox_ The address of the RRC-7755 Inbox contract
-    function initialize(address inbox_) external {
-        if (inbox_ == address(0)) {
-            revert ZeroAddress();
-        }
-        if (address(inbox) != address(0)) {
-            revert AlreadyInitialized();
-        }
-
-        inbox = IInbox(inbox_);
     }
 
     /// @notice Deposits eth or any ERC20 token for magic spend support
@@ -232,7 +214,7 @@ contract Paymaster is IPaymaster {
     /// @param token     The token address to withdraw
     /// @param amount    The amount of eth or tokens to withdraw
     function fulfillerWithdraw(address fulfiller, address token, uint256 amount) external {
-        if (msg.sender != address(inbox)) {
+        if (msg.sender != address(INBOX)) {
             revert InvalidCaller();
         }
 
@@ -359,7 +341,7 @@ contract Paymaster is IPaymaster {
         (Context memory ctx) = abi.decode(context, (Context));
 
         if (mode == PostOpMode.opSucceeded) {
-            inbox.storeReceipt(ctx.userOpHash, ctx.claimAddress);
+            INBOX.storeReceipt(ctx.userOpHash, ctx.claimAddress);
         }
 
         // If the sender's withdrawable balance is not equal to the eth amount, it means that the sender's balance was
