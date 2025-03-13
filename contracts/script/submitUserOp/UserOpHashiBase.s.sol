@@ -20,12 +20,12 @@ contract UserOpHashiBase is UserOpBase {
         (bytes32 destinationChain, bytes32 receiver, bytes memory payload, bytes[] memory baseAttributes) =
             _initMessage(destinationChainId, duration, nonce, isOPStack);
 
-        PackedUserOperation memory userOp = _updateUserOpAttributes(payload, shoyuBashi, destinationChain);
+        PackedUserOperation memory userOp = _updateUserOpAttributes(payload, shoyuBashi);
 
         return (destinationChain, receiver, abi.encode(userOp), baseAttributes);
     }
 
-    function _updateUserOpAttributes(bytes memory payload, address shoyuBashi, bytes32 destinationChain)
+    function _updateUserOpAttributes(bytes memory payload, address shoyuBashi)
         private
         pure
         returns (PackedUserOperation memory)
@@ -33,27 +33,24 @@ contract UserOpHashiBase is UserOpBase {
         PackedUserOperation memory userOp = abi.decode(payload, (PackedUserOperation));
         (bytes[] memory attributes) = abi.decode(_slice(userOp.paymasterAndData, 52), (bytes[]));
 
-        bytes[] memory newAttributes = _convertAttributes(attributes, shoyuBashi, destinationChain);
+        bytes[] memory newAttributes = _convertAttributes(attributes, shoyuBashi);
 
         userOp.paymasterAndData = _encodePaymasterAndData(_slice(userOp.paymasterAndData, 0, 52), newAttributes);
         return userOp;
     }
 
-    function _convertAttributes(bytes[] memory attributes, address shoyuBashi, bytes32 destinationChain)
+    function _convertAttributes(bytes[] memory attributes, address shoyuBashi)
         private
         pure
         returns (bytes[] memory)
     {
-        bytes[] memory newAttributes = new bytes[](attributes.length + 1);
-
         for (uint256 i; i < attributes.length; i++) {
-            newAttributes[i] = attributes[i];
-            if (bytes4(newAttributes[i]) == _L2_ORACLE_ATTRIBUTE_SELECTOR) {
-                newAttributes[i] = abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, shoyuBashi);
+            if (bytes4(attributes[i]) == _L2_ORACLE_ATTRIBUTE_SELECTOR) {
+                attributes[i] = abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, shoyuBashi);
             }
         }
 
-        return newAttributes;
+        return attributes;
     }
 
     function _encodePaymasterAndData(bytes memory prefix, bytes[] memory attributes)
