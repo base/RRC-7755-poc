@@ -8,11 +8,14 @@ contract MockHashiProver is RRC7755OutboxToHashi {
         return _minExpiryTime(finalityDelay);
     }
 
-    function validateProof(bytes memory storageKey, bytes32 inbox, bytes[] calldata attributes, bytes calldata proof)
-        external
-        view
-    {
-        _validateProof(storageKey, inbox, attributes, proof, msg.sender);
+    function validateProof(
+        bytes32 destinationChain,
+        bytes memory storageKey,
+        bytes32 inbox,
+        bytes[] calldata attributes,
+        bytes calldata proof
+    ) external view {
+        _validateProof(destinationChain, storageKey, inbox, attributes, proof, msg.sender);
     }
 
     // Including to block from coverage report

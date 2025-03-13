@@ -214,7 +214,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = super.getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
-        _validateProof(storageKey, receiver, attributes, proof, msg.sender);
+        _validateProof(destinationChain, storageKey, receiver, attributes, proof, msg.sender);
 
         (bytes32 rewardAsset, uint256 rewardAmount) = _getReward(messageId, attributes);
 
@@ -246,7 +246,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes memory storageKey = abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
         bytes[] memory attributes = getUserOpAttributes(userOp);
         (bytes32 rewardAsset, uint256 rewardAmount) =
-            this.innerValidateProofAndGetReward(messageId, storageKey, attributes, proof, msg.sender);
+            this.innerValidateProofAndGetReward(messageId, destinationChain, storageKey, attributes, proof, msg.sender);
 
         _processClaim(messageId, payTo, rewardAsset, rewardAmount);
     }
@@ -390,6 +390,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///                 chain block timestamp
     ///
     /// @param messageId               The keccak256 hash of the message request
+    /// @param destinationChain        The destination chain identifier
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
     /// @param attributes              The attributes to be included in the message
@@ -399,13 +400,14 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @return _ The reward asset and reward amount
     function innerValidateProofAndGetReward(
         bytes32 messageId,
+        bytes32 destinationChain,
         bytes memory inboxContractStorageKey,
         bytes[] calldata attributes,
         bytes calldata proofData,
         address caller
     ) public view returns (bytes32, uint256) {
         (bytes32 rewardAsset, uint256 rewardAmount, bytes32 inbox) = _getRewardAndInbox(messageId, attributes);
-        _validateProof(inboxContractStorageKey, inbox, attributes, proofData, caller);
+        _validateProof(destinationChain, inboxContractStorageKey, inbox, attributes, proofData, caller);
         return (rewardAsset, rewardAmount);
     }
 
@@ -530,6 +532,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     ///
     /// @dev Implementation will vary by L2
     ///
+    /// @param destinationChain        The destination chain identifier
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
     /// @param inbox                   The address of the `RRC7755Inbox` contract
@@ -537,6 +540,7 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @param proofData               The proof to validate
     /// @param caller                  The address of the caller
     function _validateProof(
+        bytes32 destinationChain,
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,

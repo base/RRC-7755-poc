@@ -62,7 +62,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidBeaconRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -77,7 +79,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidL1StateRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -92,7 +96,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert();
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidL1Storage() external fundAlice(_REWARD_AMOUNT) {
@@ -105,7 +111,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL1Storage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidL2StateRoot() external fundAlice(_REWARD_AMOUNT) {
@@ -118,7 +126,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL2StateRoot.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidL2Storage() external fundAlice(_REWARD_AMOUNT) {
@@ -131,7 +141,9 @@ contract OPStackProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(OPStackProver.InvalidL2Storage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_reverts_ifInvalidCaller() external fundAlice(_REWARD_AMOUNT) {
@@ -143,7 +155,9 @@ contract OPStackProverTest is BaseTest {
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), FILLER));
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function test_validate_proveOptimismSepoliaStateFromBaseSepolia() external fundAlice(_REWARD_AMOUNT) {
@@ -155,7 +169,9 @@ contract OPStackProverTest is BaseTest {
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.prank(FILLER);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData);
+        prover.validateProof(
+            m.destinationChain, inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, storageProofData
+        );
     }
 
     function _buildProofAndEncodeProof(string memory json) private returns (bytes memory) {

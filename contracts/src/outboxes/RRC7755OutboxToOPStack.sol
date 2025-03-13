@@ -30,6 +30,7 @@ contract RRC7755OutboxToOPStack is RRC7755Outbox {
     /// @param proof                   The proof to validate
     /// @param caller                  The address of the caller
     function _validateProof(
+        bytes32,
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,

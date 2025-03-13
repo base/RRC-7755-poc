@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import {stdJson} from "forge-std/StdJson.sol";
-import {CAIP10} from "openzeppelin-contracts/contracts/utils/CAIP10.sol";
 
 import {HashiProver} from "../src/libraries/provers/HashiProver.sol";
 import {BlockHeaders} from "../src/libraries/BlockHeaders.sol";
@@ -19,10 +18,19 @@ contract HashiProverTest is BaseTest {
     using stdJson for string;
     using GlobalTypes for address;
     using BlockHeaders for bytes;
-    using CAIP10 for address;
+
+    struct Message {
+        bytes32 sourceChain;
+        bytes32 destinationChain;
+        bytes32 sender;
+        bytes32 receiver;
+        bytes payload;
+        bytes[] attributes;
+    }
 
     uint256 public immutable HASHI_DOMAIN_DST_CHAIN_ID = 111112;
-    address private constant _INBOX_CONTRACT = 0xdac62f96404AB882F5a61CFCaFb0C470a19FC514;
+    address private constant _INBOX_CONTRACT = 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512;
+    bytes32 constant VERIFIER_STORAGE_LOCATION = 0x40f2eef6aad3cb0e74d3b59b45d3d5f2d5fc8dc382e739617b693cdd4bc30c00;
 
     MockHashiProver prover;
     MockShoyuBashi shoyuBashi;
@@ -42,23 +50,25 @@ contract HashiProverTest is BaseTest {
     }
 
     function test_reverts_ifFinalityDelaySecondsStillInProgress() external fundAlice(_REWARD_AMOUNT) {
-        (string memory sender, string memory destinationChain, Call[] memory calls, bytes[] memory attributes) =
-            _initMessage(_REWARD_AMOUNT);
-        bytes32 messageId = _getMessageId(sender, destinationChain, calls, attributes);
+        Message memory m = _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId =
+            prover.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
 
-        HashiProver.RRC7755Proof memory proof = _buildProof(validProof);
+        bytes memory proof = _buildAndEncodeProof(validProof);
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
-        attributes[1] = abi.encodeWithSelector(_DELAY_ATTRIBUTE_SELECTOR, type(uint256).max - 1 ether, 1828828574);
+        m.attributes[1] = abi.encodeWithSelector(_DELAY_ATTRIBUTE_SELECTOR, type(uint256).max - 1 ether, 1828828574);
 
         vm.prank(FILLER);
         vm.expectRevert(RRC7755OutboxToHashi.FinalityDelaySecondsInProgress.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+        prover.validateProof(
+            bytes32(HASHI_DOMAIN_DST_CHAIN_ID), inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, proof
+        );
     }
 
     function test_reverts_ifInvalidBlockHeader() external fundAlice(_REWARD_AMOUNT) {
-        (string memory sender, string memory destinationChain, Call[] memory calls, bytes[] memory attributes) =
-            _initMessage(_REWARD_AMOUNT);
-        bytes32 messageId = _getMessageId(sender, destinationChain, calls, attributes);
+        Message memory m = _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId =
+            prover.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
         HashiProver.RRC7755Proof memory proof = _buildProof(validProof);
 
         (, uint256 blockNumber,) = proof.rlpEncodedBlockHeader.extractStateRootBlockNumberAndTimestamp();
@@ -70,14 +80,16 @@ contract HashiProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(HashiProver.InvalidBlockHeader.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+        prover.validateProof(
+            bytes32(0), inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, abi.encode(proof)
+        );
     }
 
     function test_reverts_ifInvalidStorage() external fundAlice(_REWARD_AMOUNT) {
         bytes memory wrongStorageValue = "0x23214a0864fc0014cab6030267738f01affdd547000000000000000067444860";
-        (string memory sender, string memory destinationChain, Call[] memory calls, bytes[] memory attributes) =
-            _initMessage(_REWARD_AMOUNT);
-        bytes32 messageId = _getMessageId(sender, destinationChain, calls, attributes);
+        Message memory m = _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId =
+            prover.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
 
         HashiProver.RRC7755Proof memory proof = _buildProof(validProof);
         proof.dstAccountProofParams.storageValue = wrongStorageValue;
@@ -85,31 +97,45 @@ contract HashiProverTest is BaseTest {
 
         vm.prank(FILLER);
         vm.expectRevert(HashiProver.InvalidStorage.selector);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+        prover.validateProof(
+            bytes32(HASHI_DOMAIN_DST_CHAIN_ID),
+            inboxStorageKey,
+            _INBOX_CONTRACT.addressToBytes32(),
+            m.attributes,
+            abi.encode(proof)
+        );
     }
 
     function test_reverts_ifInvalidCaller() external fundAlice(_REWARD_AMOUNT) {
-        (string memory sender, string memory destinationChain, Call[] memory calls, bytes[] memory attributes) =
-            _initMessage(_REWARD_AMOUNT);
-        bytes32 messageId = _getMessageId(sender, destinationChain, calls, attributes);
+        Message memory m = _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId =
+            prover.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
 
-        HashiProver.RRC7755Proof memory proof = _buildProof(validProof);
+        bytes memory proof = _buildAndEncodeProof(validProof);
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, address(this), FILLER));
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+        prover.validateProof(
+            bytes32(HASHI_DOMAIN_DST_CHAIN_ID), inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, proof
+        );
     }
 
     function test_proveGnosisChiadoStateFromBaseSepolia() external fundAlice(_REWARD_AMOUNT) {
-        (string memory sender, string memory destinationChain, Call[] memory calls, bytes[] memory attributes) =
-            _initMessage(_REWARD_AMOUNT);
-        bytes32 messageId = _getMessageId(sender, destinationChain, calls, attributes);
+        Message memory m = _initMessage(_REWARD_AMOUNT);
+        bytes32 messageId =
+            prover.getMessageId(m.sourceChain, m.sender, m.destinationChain, m.receiver, m.payload, m.attributes);
 
-        HashiProver.RRC7755Proof memory proof = _buildProof(validProof);
+        bytes memory proof = _buildAndEncodeProof(validProof);
         bytes memory inboxStorageKey = _deriveStorageKey(messageId);
 
         vm.prank(FILLER);
-        prover.validateProof(inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), attributes, abi.encode(proof));
+        prover.validateProof(
+            bytes32(HASHI_DOMAIN_DST_CHAIN_ID), inboxStorageKey, _INBOX_CONTRACT.addressToBytes32(), m.attributes, proof
+        );
+    }
+
+    function _buildAndEncodeProof(string memory json) private returns (bytes memory) {
+        return abi.encode(_buildProof(json));
     }
 
     function _buildProof(string memory json) private returns (HashiProver.RRC7755Proof memory) {
@@ -131,24 +157,26 @@ contract HashiProverTest is BaseTest {
         });
     }
 
-    function _initMessage(uint256 rewardAmount)
-        private
-        view
-        returns (string memory, string memory, Call[] memory, bytes[] memory)
-    {
-        string memory sender = address(this).local();
-        string memory destinationChain = _remote(HASHI_DOMAIN_DST_CHAIN_ID);
-        Call[] memory calls = new Call[](0);
-        bytes[] memory attributes = new bytes[](6);
+    function _initMessage(uint256 rewardAmount) private view returns (Message memory) {
+        Message memory m;
+        m.sourceChain = bytes32(uint256(31337));
+        m.destinationChain = bytes32(HASHI_DOMAIN_DST_CHAIN_ID);
+        m.sender = 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496.addressToBytes32();
+        m.receiver = 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496.addressToBytes32();
+        m.attributes = new bytes[](5);
 
-        attributes[0] =
+        m.attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
-        attributes[1] = abi.encodeWithSelector(_DELAY_ATTRIBUTE_SELECTOR, 10, 1828828574);
-        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
-        attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
-        attributes[4] = abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, address(shoyuBashi).addressToBytes32());
-        attributes[5] = abi.encodeWithSelector(_DESTINATION_CHAIN_SELECTOR, bytes32(HASHI_DOMAIN_DST_CHAIN_ID));
+        m.attributes[1] = abi.encodeWithSelector(_DELAY_ATTRIBUTE_SELECTOR, 10, 1828828574);
+        m.attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1);
+        m.attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
+        m.attributes[4] =
+            abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, address(shoyuBashi).addressToBytes32());
 
-        return (sender, destinationChain, calls, attributes);
+        return m;
+    }
+
+    function _deriveStorageKey(bytes32 messageId) internal pure override returns (bytes memory) {
+        return abi.encode(keccak256(abi.encodePacked(messageId, VERIFIER_STORAGE_LOCATION)));
     }
 }
