@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
+import {RRC7755Base} from "../src/RRC7755Base.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 import {RRC7755OutboxToOPStack} from "../src/outboxes/RRC7755OutboxToOPStack.sol";
 
@@ -19,6 +20,8 @@ contract OPStackOutboxTest is BaseTest {
         bytes[] attributes;
     }
 
+    bytes4 internal constant _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR = 0x0f786369;
+
     RRC7755OutboxToOPStack opStackOutbox;
 
     function setUp() public {
@@ -29,23 +32,25 @@ contract OPStackOutboxTest is BaseTest {
 
     function test_getRequiredAttributes_standardRequest() external view {
         bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(false);
-        assertEq(requiredAttributes.length, 5);
-        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[3], _REQUESTER_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
-    }
-
-    function test_getRequiredAttributes_userOp() external view {
-        bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(true);
         assertEq(requiredAttributes.length, 6);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[3], _REQUESTER_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[5], _INBOX_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR);
+    }
+
+    function test_getRequiredAttributes_userOp() external view {
+        bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(true);
+        assertEq(requiredAttributes.length, 7);
+        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[3], _REQUESTER_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[6], _INBOX_ATTRIBUTE_SELECTOR);
     }
 
     function test_sendMessage_opStack_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -75,9 +80,7 @@ contract OPStackOutboxTest is BaseTest {
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755OutboxToOPStack.DuplicateAttribute.selector, _L2_ORACLE_ATTRIBUTE_SELECTOR)
-        );
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Base.DuplicateAttribute.selector, _L2_ORACLE_ATTRIBUTE_SELECTOR));
         vm.prank(ALICE);
         opStackOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
@@ -226,13 +229,17 @@ contract OPStackOutboxTest is BaseTest {
         bytes32 sender = address(opStackOutbox).addressToBytes32();
         Call[] memory calls = new Call[](1);
         calls[0] = Call({to: address(opStackOutbox).addressToBytes32(), data: "", value: 0});
-        bytes[] memory attributes = new bytes[](4);
+        bytes[] memory attributes = new bytes[](5);
 
         attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
         attributes = _setDelay(attributes, 10, block.timestamp + 2 weeks);
         attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
+        attributes[4] = abi.encodeWithSelector(
+            _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR,
+            0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49
+        );
 
         return TestMessage({
             sourceChain: bytes32(block.chainid),

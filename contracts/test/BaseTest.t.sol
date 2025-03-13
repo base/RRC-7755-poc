@@ -76,7 +76,7 @@ contract BaseTest is Test, RRC7755Base {
         _;
     }
 
-    function _deriveStorageKey(bytes32 messageId) internal pure returns (bytes memory) {
+    function _deriveStorageKey(bytes32 messageId) internal pure virtual returns (bytes memory) {
         return abi.encode(keccak256(abi.encodePacked(messageId, _VERIFIER_STORAGE_LOCATION)));
     }
 

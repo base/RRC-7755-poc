@@ -124,7 +124,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
 
         _setFulfillmentInfo(messageId, fulfiller);
 
-        _sendCallsAndValidateMsgValue(payload);
+        _sendCalls(payload);
     }
 
     /// @notice A function that allows the paymaster to store the fulfillment info for a passed in call hash that
@@ -151,7 +151,7 @@ contract RRC7755Inbox is RRC7755Base, IInbox, ReentrancyGuard {
         return _getFulfillmentInfo(messageId);
     }
 
-    function _sendCallsAndValidateMsgValue(bytes calldata payload) private {
+    function _sendCalls(bytes calldata payload) private {
         Call[] memory calls = abi.decode(payload, (Call[]));
 
         for (uint256 i; i < calls.length; i++) {

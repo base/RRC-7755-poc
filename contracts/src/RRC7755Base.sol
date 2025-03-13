@@ -7,7 +7,7 @@ pragma solidity ^0.8.24;
 ///
 /// @notice This contract contains helper functions and shared message attributes for RRC-7755 used by both Inbox and
 ///         Outbox contracts. The attributes are inspired by ERC-7786.
-contract RRC7755Base {
+abstract contract RRC7755Base {
     /// @notice Low-level call specs representing the desired transaction on destination chain
     struct Call {
         /// @dev The address to call
@@ -16,6 +16,18 @@ contract RRC7755Base {
         bytes data;
         /// @dev The native asset value of the call
         uint256 value;
+    }
+
+    /// @notice This struct is used to process attributes while avoiding stack too deep errors
+    struct ProcessAttributesState {
+        /// @dev The selectors that are required for the request
+        bytes4[] requiredSelectors;
+        /// @dev Whether each required selector has been processed
+        bool[] processedRequired;
+        /// @dev The selectors that are optional for the request
+        bytes4[] optionalSelectors;
+        /// @dev Whether each optional selector has been processed
+        bool[] processedOptional;
     }
 
     /// @notice The selector for the precheck attribute
@@ -31,6 +43,11 @@ contract RRC7755Base {
     ///
     /// @param selector The selector of the attribute that was not found
     error AttributeNotFound(bytes4 selector);
+
+    /// @notice This error is thrown when a duplicate attribute is found
+    ///
+    /// @param selector The selector of the duplicate attribute
+    error DuplicateAttribute(bytes4 selector);
 
     /// @notice Returns the keccak256 hash of a message request
     ///
@@ -91,5 +108,13 @@ contract RRC7755Base {
             }
         }
         return (false, attributes[0]);
+    }
+
+    /// @dev Helper function to find the index of a selector in the array
+    function _findSelectorIndex(bytes4 selector, bytes4[] memory selectors) internal pure returns (uint256) {
+        for (uint256 i; i < selectors.length; i++) {
+            if (selector == selectors[i]) return i;
+        }
+        return type(uint256).max; // Not found
     }
 }

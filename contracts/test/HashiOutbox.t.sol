@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
+import {RRC7755Base} from "../src/RRC7755Base.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 import {RRC7755OutboxToHashi} from "../src/outboxes/RRC7755OutboxToHashi.sol";
 
@@ -69,7 +70,7 @@ contract HashiOutboxTest is BaseTest {
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(
-            abi.encodeWithSelector(RRC7755OutboxToHashi.DuplicateAttribute.selector, _SHOYU_BASHI_ATTRIBUTE_SELECTOR)
+            abi.encodeWithSelector(RRC7755Base.DuplicateAttribute.selector, _SHOYU_BASHI_ATTRIBUTE_SELECTOR)
         );
         vm.prank(ALICE);
         hashiOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);

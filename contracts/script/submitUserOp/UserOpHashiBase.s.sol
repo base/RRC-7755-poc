@@ -11,12 +11,12 @@ contract UserOpHashiBase is UserOpBase {
     bytes4 private constant _DESTINATION_CHAIN_SELECTOR = 0xdff49bf1; // destinationChain(bytes32)
     address private constant ENTRY_POINT = 0x0000000071727De22E5E9d8BAf0edAc6f37da032;
 
-    function _initMessage(uint256 destinationChainId, uint256 duration, uint256 nonce, address shoyuBashi)
+    function _initMessage(uint256 destinationChainId, uint256 duration, uint256 nonce, address shoyuBashi, bool isOPStack)
         internal
         returns (bytes32, bytes32, bytes memory, bytes[] memory)
     {
         (bytes32 destinationChain, bytes32 receiver, bytes memory payload, bytes[] memory baseAttributes) =
-            _initMessage(destinationChainId, duration, nonce);
+            _initMessage(destinationChainId, duration, nonce, isOPStack);
 
         PackedUserOperation memory userOp = _updateUserOpAttributes(payload, shoyuBashi, destinationChain);
 
@@ -33,9 +33,7 @@ contract UserOpHashiBase is UserOpBase {
 
         bytes[] memory newAttributes = _convertAttributes(attributes, shoyuBashi, destinationChain);
 
-        userOp.paymasterAndData = _encodePaymasterAndData(
-            _slice(userOp.paymasterAndData, 0, 52), newAttributes
-        );
+        userOp.paymasterAndData = _encodePaymasterAndData(_slice(userOp.paymasterAndData, 0, 52), newAttributes);
         return userOp;
     }
 
@@ -61,10 +59,11 @@ contract UserOpHashiBase is UserOpBase {
         return newAttributes;
     }
 
-    function _encodePaymasterAndData(
-        bytes memory prefix,
-        bytes[] memory attributes
-    ) private pure returns (bytes memory) {
+    function _encodePaymasterAndData(bytes memory prefix, bytes[] memory attributes)
+        private
+        pure
+        returns (bytes memory)
+    {
         return abi.encodePacked(prefix, abi.encode(attributes));
     }
 

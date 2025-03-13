@@ -18,7 +18,7 @@ contract BaseToOptimism is StandardBase {
         uint256 nonce = outbox.getNonce(_REQUESTER);
 
         (bytes32 destinationChain, bytes32 receiver, bytes memory payload, bytes[] memory attributes) =
-            _initMessage(destinationChainId, duration, nonce);
+            _initMessage(destinationChainId, duration, nonce, true);
 
         vm.startBroadcast();
         outbox.sendMessage{value: 0.0002 ether}(destinationChain, receiver, payload, attributes);

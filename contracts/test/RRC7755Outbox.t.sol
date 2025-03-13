@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
+import {RRC7755Base} from "../src/RRC7755Base.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 
 import {MockOutbox} from "./mocks/MockOutbox.sol";
@@ -27,6 +28,7 @@ contract RRC7755OutboxTest is BaseTest {
     MockOutbox outbox;
 
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+    bytes32 private constant _EXPECTED_ENTRY_POINT = 0x0000000000000000000000000000000071727de22e5e9d8baf0edac6f37da032;
 
     event MessagePosted(
         bytes32 indexed messageId,
@@ -44,6 +46,27 @@ contract RRC7755OutboxTest is BaseTest {
         _setUp();
         outbox = new MockOutbox();
         approveAddr = address(outbox);
+    }
+
+    function test_getOptionalAttributes() external view {
+        bytes4[] memory optionalAttributes = outbox.getOptionalAttributes();
+        assertEq(optionalAttributes.length, 3);
+        assertEq(optionalAttributes[0], _PRECHECK_ATTRIBUTE_SELECTOR);
+        assertEq(optionalAttributes[1], _MAGIC_SPEND_REQUEST_SELECTOR);
+        assertEq(optionalAttributes[2], _INBOX_ATTRIBUTE_SELECTOR);
+    }
+
+    function test_sendMessage_reverts_ifDuplicateOptionalAttribute(uint256 rewardAmount)
+        external
+        fundAlice(rewardAmount)
+    {
+        TestMessage memory m = _initMessage(rewardAmount, false);
+        m.attributes = _addAttribute(m.attributes, _PRECHECK_ATTRIBUTE_SELECTOR);
+        m.attributes = _addAttribute(m.attributes, _PRECHECK_ATTRIBUTE_SELECTOR);
+
+        vm.prank(ALICE);
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Base.DuplicateAttribute.selector, _PRECHECK_ATTRIBUTE_SELECTOR));
+        outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
     function test_sendMessage_incrementsNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -121,6 +144,14 @@ contract RRC7755OutboxTest is BaseTest {
             outbox.getUserOpHash(abi.decode(m.payload, (PackedUserOperation)), m.receiver, m.destinationChain);
         RRC7755Outbox.CrossChainCallStatus status = outbox.getMessageStatus(messageId);
         assert(status == RRC7755Outbox.CrossChainCallStatus.Requested);
+    }
+
+    function test_sendMessage_reverts_userOp_invalidReceiver(uint256 rewardAmount) external fundAlice(rewardAmount) {
+        TestMessage memory m = _initUserOpMessage(rewardAmount);
+
+        vm.prank(ALICE);
+        vm.expectRevert(RRC7755Outbox.InvalidReceiver.selector);
+        outbox.sendMessage(m.destinationChain, bytes32(0), m.payload, m.attributes);
     }
 
     function test_sendMessage_reverts_ifUnsupportedAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -682,7 +713,7 @@ contract RRC7755OutboxTest is BaseTest {
             sourceChain: bytes32(block.chainid),
             destinationChain: destinationChain,
             sender: sender,
-            receiver: sender,
+            receiver: _EXPECTED_ENTRY_POINT,
             userOp: userOp,
             payload: abi.encode(userOp),
             attributes: new bytes[](0),

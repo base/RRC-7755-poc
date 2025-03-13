@@ -61,6 +61,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     bytes32 private constant _VERIFIER_STORAGE_LOCATION =
         0x40f2eef6aad3cb0e74d3b59b45d3d5f2d5fc8dc382e739617b693cdd4bc30c00;
 
+    /// @notice The expected entry point receiver for UserOp requests
+    bytes32 private constant _EXPECTED_ENTRY_POINT = 0x0000000000000000000000000000000071727de22e5e9d8baf0edac6f37da032;
+
     /// @notice The duration, in excess of CrossChainRequest.expiry, which must pass before a request can be canceled
     uint256 public constant CANCEL_DELAY_SECONDS = 1 days;
 
@@ -140,9 +143,11 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice This error is thrown if the passed in requester is not equal to msg.sender
     error InvalidRequester();
 
+    /// @notice This error is thrown if the receiver for a UserOp request is not the expected entry point
+    error InvalidReceiver();
+
     /// @notice Initiates the sending of a 7755 request containing a single message
     ///
-    /// @custom:reverts If the attributes array length is less than 3
     /// @custom:reverts If a required attribute is missing from the global attributes array
     /// @custom:reverts If an unsupported attribute is provided
     ///
@@ -164,6 +169,10 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         if (attributes.length == 0) {
+            if (receiver != _EXPECTED_ENTRY_POINT) {
+                revert InvalidReceiver();
+            }
+
             bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
             this.processAttributes(messageId, userOpAttributes, msg.sender, msg.value, true);
         } else {
@@ -294,21 +303,21 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         return _messageStatus[messageId];
     }
 
-    /// @notice Returns true if the attribute selector is supported by this contract
-    ///
-    /// @param selector The selector of the attribute
-    ///
-    /// @return _ True if the attribute selector is supported by this contract
-    function supportsAttribute(bytes4 selector) public pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _INBOX_ATTRIBUTE_SELECTOR;
-    }
-
     /// @notice Returns the required attributes for this contract
     ///
     /// @param isUserOp Whether the request is an ERC-4337 User Operation
     ///
     /// @return _ The required attributes for this contract
-    function getRequiredAttributes(bool isUserOp) external pure virtual returns (bytes4[] memory);
+    function getRequiredAttributes(bool isUserOp) external pure returns (bytes4[] memory) {
+        return _getRequiredAttributes(isUserOp);
+    }
+
+    /// @notice Returns the optional attributes for this contract
+    ///
+    /// @return _ The optional attributes for this contract
+    function getOptionalAttributes() external pure returns (bytes4[] memory) {
+        return _getOptionalAttributes();
+    }
 
     /// @notice This is only to be called by this contract during a `sendMessage` call
     ///
@@ -325,7 +334,53 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         address requester,
         uint256 value,
         bool requireInbox
-    ) public virtual;
+    ) public {
+        if (msg.sender != address(this)) {
+            revert InvalidCaller({caller: msg.sender, expectedCaller: address(this)});
+        }
+
+        // Define required attributes and their handlers
+        ProcessAttributesState memory state;
+        state.requiredSelectors = _getRequiredAttributes(requireInbox);
+        state.processedRequired = new bool[](state.requiredSelectors.length);
+        state.optionalSelectors = _getOptionalAttributes();
+        state.processedOptional = new bool[](state.optionalSelectors.length);
+
+        // Process all attributes
+        for (uint256 i; i < attributes.length; i++) {
+            bytes4 selector = bytes4(attributes[i]);
+
+            uint256 index = _findSelectorIndex(selector, state.requiredSelectors);
+            if (index != type(uint256).max) {
+                if (state.processedRequired[index]) {
+                    revert DuplicateAttribute(selector);
+                }
+
+                _processAttribute(selector, attributes[i], requester, value, messageId);
+                state.processedRequired[index] = true;
+                continue;
+            }
+
+            index = _findSelectorIndex(selector, state.optionalSelectors);
+
+            if (index == type(uint256).max) {
+                revert UnsupportedAttribute(selector);
+            }
+
+            if (state.processedOptional[index]) {
+                revert DuplicateAttribute(selector);
+            }
+
+            state.processedOptional[index] = true;
+        }
+
+        // Check for missing required attributes
+        for (uint256 i; i < state.requiredSelectors.length; i++) {
+            if (!state.processedRequired[i]) {
+                revert MissingRequiredAttribute(state.requiredSelectors[i]);
+            }
+        }
+    }
 
     /// @notice Validates storage proofs and verifies fill
     ///
@@ -430,6 +485,41 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         return abi.decode(userOp.paymasterAndData[52:], (bytes[]));
     }
 
+    /// @notice Returns true if the attribute selector is supported by this contract
+    ///
+    /// @param selector The selector of the attribute
+    ///
+    /// @return _ True if the attribute selector is supported by this contract
+    function supportsAttribute(bytes4 selector) public pure returns (bool) {
+        uint256 requiredIndex = _findSelectorIndex(selector, _getRequiredAttributes(true));
+        uint256 optionalIndex = _findSelectorIndex(selector, _getOptionalAttributes());
+
+        return requiredIndex != type(uint256).max || optionalIndex != type(uint256).max;
+    }
+
+    /// @dev Helper function to process individual attributes
+    function _processAttribute(
+        bytes4 selector,
+        bytes calldata attribute,
+        address requester,
+        uint256 value,
+        bytes32 messageId
+    ) internal virtual {
+        if (selector == _REWARD_ATTRIBUTE_SELECTOR) {
+            _handleRewardAttribute(attribute, requester, value, messageId);
+        } else if (selector == _NONCE_ATTRIBUTE_SELECTOR) {
+            if (abi.decode(attribute[4:], (uint256)) != _incrementNonce(requester)) {
+                revert InvalidNonce();
+            }
+        } else if (selector == _REQUESTER_ATTRIBUTE_SELECTOR) {
+            if (abi.decode(attribute[4:], (address)) != requester) {
+                revert InvalidRequester();
+            }
+        } else if (selector == _DELAY_ATTRIBUTE_SELECTOR) {
+            _handleDelayAttribute(attribute);
+        }
+    }
+
     /// @notice Validates storage proofs and verifies fill
     ///
     /// @custom:reverts If storage proof invalid
@@ -475,9 +565,14 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         return fulfillmentInfo;
     }
 
-    function _isOptionalAttribute(bytes4 selector) internal pure virtual returns (bool) {
-        return selector == _PRECHECK_ATTRIBUTE_SELECTOR || selector == _MAGIC_SPEND_REQUEST_SELECTOR
-            || selector == _INBOX_ATTRIBUTE_SELECTOR;
+    function _getRequiredAttributes(bool isUserOp) internal pure virtual returns (bytes4[] memory);
+
+    function _getOptionalAttributes() internal pure virtual returns (bytes4[] memory) {
+        bytes4[] memory optionalSelectors = new bytes4[](3);
+        optionalSelectors[0] = _PRECHECK_ATTRIBUTE_SELECTOR;
+        optionalSelectors[1] = _MAGIC_SPEND_REQUEST_SELECTOR;
+        optionalSelectors[2] = _INBOX_ATTRIBUTE_SELECTOR;
+        return optionalSelectors;
     }
 
     function _handleRewardAttribute(bytes calldata attribute, address requester, uint256 value, bytes32 messageId)

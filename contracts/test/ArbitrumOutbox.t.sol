@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
+import {RRC7755Base} from "../src/RRC7755Base.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 import {RRC7755OutboxToArbitrum} from "../src/outboxes/RRC7755OutboxToArbitrum.sol";
 
@@ -72,9 +73,7 @@ contract ArbitrumOutboxTest is BaseTest {
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
         m.attributes = _addAttribute(m.attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755OutboxToArbitrum.DuplicateAttribute.selector, _L2_ORACLE_ATTRIBUTE_SELECTOR)
-        );
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Base.DuplicateAttribute.selector, _L2_ORACLE_ATTRIBUTE_SELECTOR));
         vm.prank(ALICE);
         arbitrumOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
