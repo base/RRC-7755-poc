@@ -9,6 +9,7 @@ contract MockOutbox is RRC7755Outbox {
     }
 
     function _validateProof(
+        bytes32 destinationChain,
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,

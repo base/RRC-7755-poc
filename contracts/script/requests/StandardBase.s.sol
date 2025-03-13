@@ -20,7 +20,8 @@ contract StandardBase is Script, RRC7755Base {
     bytes4 private constant _REQUESTER_ATTRIBUTE_SELECTOR = 0x3bd94e4c; // requester(bytes32)
     bytes4 internal constant _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR = 0x0f786369;
     bytes32 private constant _NATIVE_ASSET = 0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
-    bytes32 private constant _OP_STACK_L2_ORACLE_STORAGE_KEY = 0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49;
+    bytes32 private constant _OP_STACK_L2_ORACLE_STORAGE_KEY =
+        0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49;
 
     HelperConfig internal helperConfig;
 
@@ -48,7 +49,8 @@ contract StandardBase is Script, RRC7755Base {
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, _REQUESTER.addressToBytes32());
         attributes[4] = abi.encodeWithSelector(_L2_ORACLE_ATTRIBUTE_SELECTOR, dstConfig.l2Oracle);
         if (isOPStack) {
-            attributes[5] = abi.encodeWithSelector(_L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR, _OP_STACK_L2_ORACLE_STORAGE_KEY);
+            attributes[5] =
+                abi.encodeWithSelector(_L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR, _OP_STACK_L2_ORACLE_STORAGE_KEY);
         }
 
         return (destinationChain, receiver, abi.encode(calls), attributes);

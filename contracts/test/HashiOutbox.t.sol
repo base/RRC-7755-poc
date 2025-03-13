@@ -30,25 +30,23 @@ contract HashiOutboxTest is BaseTest {
 
     function test_getRequiredAttributes_standardRequest() external view {
         bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(false);
+        assertEq(requiredAttributes.length, 5);
+        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[2], _REQUESTER_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
+    }
+
+    function test_getRequiredAttributes_userOp() external view {
+        bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(true);
         assertEq(requiredAttributes.length, 6);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[2], _REQUESTER_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[5], _DESTINATION_CHAIN_SELECTOR);
-    }
-
-    function test_getRequiredAttributes_userOp() external view {
-        bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(true);
-        assertEq(requiredAttributes.length, 7);
-        assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[2], _REQUESTER_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        assertEq(requiredAttributes[5], _DESTINATION_CHAIN_SELECTOR);
-        assertEq(requiredAttributes[6], _INBOX_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[5], _INBOX_ATTRIBUTE_SELECTOR);
     }
 
     function test_sendMessage_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
@@ -57,7 +55,6 @@ contract HashiOutboxTest is BaseTest {
 
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.InvalidCaller.selector, ALICE, address(hashiOutbox)));
         vm.prank(ALICE);
@@ -79,7 +76,6 @@ contract HashiOutboxTest is BaseTest {
     function test_sendMessage_reverts_ifInvalidNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 1000);
 
         vm.expectRevert(RRC7755Outbox.InvalidNonce.selector);
@@ -90,7 +86,6 @@ contract HashiOutboxTest is BaseTest {
     function test_sendMessage_reverts_ifInvalidAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[0] = abi.encodeWithSelector(bytes4(0x11111111));
 
         vm.expectRevert(abi.encodeWithSelector(RRC7755Outbox.UnsupportedAttribute.selector, bytes4(0x11111111)));
@@ -102,7 +97,6 @@ contract HashiOutboxTest is BaseTest {
         TestMessage memory m = _initMessage(rewardAmount);
         uint256 before = hashiOutbox.getNonce(ALICE);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
 
         vm.prank(ALICE);
         hashiOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
@@ -113,7 +107,6 @@ contract HashiOutboxTest is BaseTest {
     function test_sendMessage_reverts_ifMissingRewardAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[0] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(
@@ -128,7 +121,6 @@ contract HashiOutboxTest is BaseTest {
         fundAlice(rewardAmount)
     {
         TestMessage memory m = _initMessage(rewardAmount);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
 
         vm.expectRevert(
             abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _SHOYU_BASHI_ATTRIBUTE_SELECTOR)
@@ -137,24 +129,9 @@ contract HashiOutboxTest is BaseTest {
         hashiOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
-    function test_sendMessage_reverts_ifMissingDestinationChainAttribute(uint256 rewardAmount)
-        external
-        fundAlice(rewardAmount)
-    {
-        TestMessage memory m = _initMessage(rewardAmount);
-        m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(RRC7755Outbox.MissingRequiredAttribute.selector, _DESTINATION_CHAIN_SELECTOR)
-        );
-        vm.prank(ALICE);
-        hashiOutbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
-    }
-
     function test_sendMessage_reverts_ifMissingNonceAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[2] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(
@@ -170,7 +147,6 @@ contract HashiOutboxTest is BaseTest {
     {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[3] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(
@@ -186,7 +162,6 @@ contract HashiOutboxTest is BaseTest {
     {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
 
         vm.expectRevert(RRC7755Outbox.InvalidRequester.selector);
         vm.prank(FILLER);
@@ -196,7 +171,6 @@ contract HashiOutboxTest is BaseTest {
     function test_sendMessage_reverts_ifMissingDelayAttribute(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount);
         m.attributes = _addAttribute(m.attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
-        m.attributes = _addAttribute(m.attributes, _DESTINATION_CHAIN_SELECTOR);
         m.attributes[1] = abi.encodeWithSelector(_PRECHECK_ATTRIBUTE_SELECTOR);
 
         vm.expectRevert(
@@ -214,11 +188,6 @@ contract HashiOutboxTest is BaseTest {
     function test_supportsAttribute_returnsTrue_ifShoyuBashiAttribute() external view {
         bool supportsShoyuBashi = hashiOutbox.supportsAttribute(_SHOYU_BASHI_ATTRIBUTE_SELECTOR);
         assertTrue(supportsShoyuBashi);
-    }
-
-    function test_supportsAttribute_returnsTrue_ifDestinationChainAttribute() external view {
-        bool supportsDestinationChain = hashiOutbox.supportsAttribute(_DESTINATION_CHAIN_SELECTOR);
-        assertTrue(supportsDestinationChain);
     }
 
     function test_supportsAttribute_returnsTrue_ifNonceAttribute() external view {

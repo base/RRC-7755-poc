@@ -19,9 +19,6 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     /// @notice The selector for the shoyuBashi attribute
     bytes4 internal constant _SHOYU_BASHI_ATTRIBUTE_SELECTOR = 0xda07e15d; // shoyuBashi(bytes32)
 
-    /// @notice The selector for the destinationChain attribute
-    bytes4 internal constant _DESTINATION_CHAIN_SELECTOR = 0xdff49bf1; // destinationChain(bytes32)
-
     /// @notice This error is thrown when fulfillmentInfo.timestamp is less than request.finalityDelaySeconds from
     ///         current destination chain block timestamp.
     error FinalityDelaySecondsInProgress();
@@ -34,6 +31,7 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     /// @custom:reverts If the L2StateRoot does not correspond to the validated L1 storage slot
     /// @custom:reverts If caller is not the address in the proof storage value
     ///
+    /// @param destinationChain        The destination chain identifier
     /// @param inboxContractStorageKey The storage location of the data to verify on the destination chain
     ///                                `RRC7755Inbox` contract
     /// @param inbox                   The address of the `RRC7755Inbox` contract
@@ -41,19 +39,18 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     /// @param proof                   The proof to validate
     /// @param caller                  The address of the caller
     function _validateProof(
+        bytes32 destinationChain,
         bytes memory inboxContractStorageKey,
         bytes32 inbox,
         bytes[] calldata attributes,
         bytes calldata proof,
         address caller
     ) internal view override {
-        uint256 destinationChainId = _extractChainId(attributes);
-
         address shoyuBashi = _extractShoyuBashi(attributes);
         HashiProver.Target memory target = HashiProver.Target({
             addr: inbox.bytes32ToAddress(),
             storageKey: inboxContractStorageKey,
-            destinationChainId: destinationChainId,
+            destinationChainId: uint256(destinationChain),
             shoyuBashi: shoyuBashi
         });
         (uint256 timestamp, bytes memory inboxContractStorageValue) = proof.validate(target);
@@ -78,13 +75,6 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
         return finalityDelaySeconds;
     }
 
-    function _extractChainId(bytes[] calldata attributes) internal pure returns (uint256) {
-        bytes calldata destinationChainAttribute = _locateAttribute(attributes, _DESTINATION_CHAIN_SELECTOR);
-        bytes32 destinationChainBytes32 = abi.decode(destinationChainAttribute[4:], (bytes32));
-        uint256 destinationChainId = uint256(destinationChainBytes32);
-        return destinationChainId;
-    }
-
     function _extractShoyuBashi(bytes[] calldata attributes) internal pure returns (address) {
         bytes calldata shoyuBashiBytes = _locateAttribute(attributes, _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
         bytes32 shoyuBashiBytes32 = abi.decode(shoyuBashiBytes[4:], (bytes32));
@@ -92,15 +82,14 @@ contract RRC7755OutboxToHashi is RRC7755Outbox {
     }
 
     function _getRequiredAttributes(bool requireInbox) internal pure override returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 7 : 6);
+        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 6 : 5);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _DELAY_ATTRIBUTE_SELECTOR;
         requiredSelectors[4] = _SHOYU_BASHI_ATTRIBUTE_SELECTOR;
-        requiredSelectors[5] = _DESTINATION_CHAIN_SELECTOR;
         if (requireInbox) {
-            requiredSelectors[6] = _INBOX_ATTRIBUTE_SELECTOR;
+            requiredSelectors[5] = _INBOX_ATTRIBUTE_SELECTOR;
         }
         return requiredSelectors;
     }
