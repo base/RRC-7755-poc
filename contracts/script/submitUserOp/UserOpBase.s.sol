@@ -31,10 +31,8 @@ contract UserOpBase is StandardBase {
             super._initMessage(destinationChainId, duration, nonce);
         HelperConfig.NetworkConfig memory dstConfig = helperConfig.getConfig(destinationChainId);
 
-        MagicSpendRequest memory magicSpendRequest = MagicSpendRequest({
-            token: 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE,
-            amount: 0.0001 ether
-        });
+        MagicSpendRequest memory magicSpendRequest =
+            MagicSpendRequest({token: 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, amount: 0.0001 ether});
 
         uint128 verificationGasLimit = 100000;
         uint128 callGasLimit = 100000;
@@ -51,7 +49,9 @@ contract UserOpBase is StandardBase {
             sender: dstConfig.smartAccount,
             nonce: entryPointNonce,
             initCode: "",
-            callData: abi.encodeWithSelector(MockAccount.executeUserOp.selector, address(dstConfig.paymaster), magicSpendRequest.token),
+            callData: abi.encodeWithSelector(
+                MockAccount.executeUserOp.selector, address(dstConfig.paymaster), magicSpendRequest.token
+            ),
             accountGasLimits: bytes32(abi.encodePacked(verificationGasLimit, callGasLimit)),
             preVerificationGas: 100000,
             gasFees: bytes32(abi.encodePacked(maxPriorityFeePerGas, maxFeePerGas)),
@@ -69,21 +69,22 @@ contract UserOpBase is StandardBase {
     {
         uint128 paymasterVerificationGasLimit = 100000;
         uint128 paymasterPostOpGasLimit = 100000;
-        return abi.encodePacked(
-            paymaster,
-            paymasterVerificationGasLimit,
-            paymasterPostOpGasLimit,
-            abi.encode(attributes)
-        );
+        return
+            abi.encodePacked(paymaster, paymasterVerificationGasLimit, paymasterPostOpGasLimit, abi.encode(attributes));
     }
 
-    function _addInboxAndMagicSpendAttribute(bytes[] memory attributes, address inbox, MagicSpendRequest memory req) private pure returns (bytes[] memory) {
+    function _addInboxAndMagicSpendAttribute(bytes[] memory attributes, address inbox, MagicSpendRequest memory req)
+        private
+        pure
+        returns (bytes[] memory)
+    {
         bytes[] memory newAttributes = new bytes[](attributes.length + 2);
         for (uint256 i = 0; i < attributes.length; i++) {
             newAttributes[i] = attributes[i];
         }
         newAttributes[attributes.length] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, inbox);
-        newAttributes[attributes.length + 1] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, req.token, req.amount);
+        newAttributes[attributes.length + 1] =
+            abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, req.token, req.amount);
         return newAttributes;
     }
 

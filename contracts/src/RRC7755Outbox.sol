@@ -61,6 +61,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     bytes32 private constant _VERIFIER_STORAGE_LOCATION =
         0x40f2eef6aad3cb0e74d3b59b45d3d5f2d5fc8dc382e739617b693cdd4bc30c00;
 
+    /// @notice The expected entry point receiver for UserOp requests
+    bytes32 private constant _EXPECTED_ENTRY_POINT = 0x0000000000000000000000000000000071727de22e5e9d8baf0edac6f37da032;
+
     /// @notice The duration, in excess of CrossChainRequest.expiry, which must pass before a request can be canceled
     uint256 public constant CANCEL_DELAY_SECONDS = 1 days;
 
@@ -140,9 +143,11 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice This error is thrown if the passed in requester is not equal to msg.sender
     error InvalidRequester();
 
+    /// @notice This error is thrown if the receiver for a UserOp request is not the expected entry point
+    error InvalidReceiver();
+
     /// @notice Initiates the sending of a 7755 request containing a single message
     ///
-    /// @custom:reverts If the attributes array length is less than 3
     /// @custom:reverts If a required attribute is missing from the global attributes array
     /// @custom:reverts If an unsupported attribute is provided
     ///
@@ -164,6 +169,10 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
         bytes32 messageId = getMessageId(sourceChain, sender, destinationChain, receiver, payload, attributes);
 
         if (attributes.length == 0) {
+            if (receiver != _EXPECTED_ENTRY_POINT) {
+                revert InvalidReceiver();
+            }
+
             bytes[] memory userOpAttributes = _getUserOpAttributes(payload);
             this.processAttributes(messageId, userOpAttributes, msg.sender, msg.value, true);
         } else {

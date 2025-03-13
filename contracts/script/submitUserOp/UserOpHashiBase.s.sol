@@ -33,9 +33,7 @@ contract UserOpHashiBase is UserOpBase {
 
         bytes[] memory newAttributes = _convertAttributes(attributes, shoyuBashi, destinationChain);
 
-        userOp.paymasterAndData = _encodePaymasterAndData(
-            _slice(userOp.paymasterAndData, 0, 52), newAttributes
-        );
+        userOp.paymasterAndData = _encodePaymasterAndData(_slice(userOp.paymasterAndData, 0, 52), newAttributes);
         return userOp;
     }
 
@@ -61,10 +59,11 @@ contract UserOpHashiBase is UserOpBase {
         return newAttributes;
     }
 
-    function _encodePaymasterAndData(
-        bytes memory prefix,
-        bytes[] memory attributes
-    ) private pure returns (bytes memory) {
+    function _encodePaymasterAndData(bytes memory prefix, bytes[] memory attributes)
+        private
+        pure
+        returns (bytes memory)
+    {
         return abi.encodePacked(prefix, abi.encode(attributes));
     }
 
