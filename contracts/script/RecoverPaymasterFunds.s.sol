@@ -9,7 +9,7 @@ import {Paymaster} from "../src/Paymaster.sol";
 
 contract RecoverPaymasterFunds is MultiChain {
     address public constant FULFILLER = 0x8C1a617BdB47342F9C17Ac8750E0b070c372C721;
-    address private constant _ETH_ADDRESS = address(0);
+    address private constant _ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     function run() public {
         HelperConfig helperConfig = new HelperConfig();

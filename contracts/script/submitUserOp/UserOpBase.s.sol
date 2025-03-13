@@ -21,14 +21,14 @@ contract UserOpBase is StandardBase {
 
     address private constant ENTRY_POINT = 0x0000000071727De22E5E9d8BAf0edAc6f37da032;
 
-    function _initMessage(uint256 destinationChainId, uint256 duration, uint256 nonce)
+    function _initMessage(uint256 destinationChainId, uint256 duration, uint256 nonce, bool isOPStack)
         internal
         virtual
         override
         returns (bytes32, bytes32, bytes memory, bytes[] memory)
     {
         (bytes32 destinationChain,,, bytes[] memory attributes) =
-            super._initMessage(destinationChainId, duration, nonce);
+            super._initMessage(destinationChainId, duration, nonce, isOPStack);
         HelperConfig.NetworkConfig memory dstConfig = helperConfig.getConfig(destinationChainId);
 
         MagicSpendRequest memory magicSpendRequest =
