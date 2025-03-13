@@ -25,11 +25,10 @@ export default class HandlerService {
   ) {}
 
   async handleRequest(
-    outboxId: Hex,
+    messageId: Hex,
     sender: Hex,
     receiver: Hex,
     payload: Hex,
-    value: bigint,
     attributes: Attributes
   ): Promise<void> {
     // - Confirm outbox is associated with destination chain ID
@@ -101,12 +100,11 @@ export default class HandlerService {
 
     // record db instance to be picked up later for reward collection
     const dbSuccess = await this.dbService.storeSuccessfulCall(
-      outboxId,
+      messageId,
       txnHash,
       sender,
       receiver,
       payload,
-      value,
       attributes,
       this.activeChains,
       finalityDelaySeconds

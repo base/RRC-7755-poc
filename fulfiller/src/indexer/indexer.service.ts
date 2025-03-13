@@ -110,21 +110,19 @@ export default class IndexerService {
     }
 
     const {
-      outboxId,
+      messageId,
       sender,
       destinationChain,
       receiver,
       payload,
-      value,
       attributes,
     } = topics.args as {
-      outboxId: Hex;
+      messageId: Hex;
       sourceChain: Hex;
       sender: Address;
       destinationChain: Hex;
       receiver: Address;
       payload: Hex;
-      value: bigint;
       attributes: Hex[];
     };
 
@@ -152,11 +150,10 @@ export default class IndexerService {
     );
 
     await handlerService.handleRequest(
-      outboxId,
+      messageId,
       sender,
       receiver,
       payload,
-      value,
       new Attributes(attributes)
     );
   }

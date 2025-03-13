@@ -23,7 +23,6 @@ export default class DBService {
     sender: Hex,
     receiver: Hex,
     payload: Hex,
-    value: bigint,
     attributes: Attributes,
     activeChains: ActiveChains,
     finalityDelaySeconds: number
@@ -41,7 +40,6 @@ export default class DBService {
       sender,
       receiver,
       payload,
-      value,
       attributes: attributes.getAttributes(),
       createdAt: new Date(),
       updatedAt: new Date(),

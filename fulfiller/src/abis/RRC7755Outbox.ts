@@ -230,45 +230,7 @@ export default [
   },
   {
     type: "function",
-    name: "getMessageStatus",
-    inputs: [
-      {
-        name: "messageId",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "enum RRC7755Outbox.CrossChainCallStatus",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getNonce",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getRequestId",
+    name: "getMessageId",
     inputs: [
       {
         name: "sourceChain",
@@ -312,8 +274,64 @@ export default [
   },
   {
     type: "function",
+    name: "getMessageStatus",
+    inputs: [
+      {
+        name: "messageId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "enum RRC7755Outbox.CrossChainCallStatus",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getNonce",
+    inputs: [
+      {
+        name: "account",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getOptionalAttributes",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "bytes4[]",
+        internalType: "bytes4[]",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
     name: "getRequesterAndExpiryAndReward",
     inputs: [
+      {
+        name: "messageId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
       {
         name: "attributes",
         type: "bytes[]",
@@ -342,12 +360,18 @@ export default [
         internalType: "uint256",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
   },
   {
     type: "function",
     name: "getRequiredAttributes",
-    inputs: [],
+    inputs: [
+      {
+        name: "isUserOp",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     outputs: [
       {
         name: "",
@@ -504,14 +528,14 @@ export default [
     name: "innerValidateProofAndGetReward",
     inputs: [
       {
+        name: "messageId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
         name: "inboxContractStorageKey",
         type: "bytes",
         internalType: "bytes",
-      },
-      {
-        name: "inbox",
-        type: "address",
-        internalType: "address",
       },
       {
         name: "attributes",
@@ -522,6 +546,11 @@ export default [
         name: "proofData",
         type: "bytes",
         internalType: "bytes",
+      },
+      {
+        name: "caller",
+        type: "address",
+        internalType: "address",
       },
     ],
     outputs: [
@@ -543,6 +572,11 @@ export default [
     name: "processAttributes",
     inputs: [
       {
+        name: "messageId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
         name: "attributes",
         type: "bytes[]",
         internalType: "bytes[]",
@@ -556,6 +590,11 @@ export default [
         name: "value",
         type: "uint256",
         internalType: "uint256",
+      },
+      {
+        name: "requireInbox",
+        type: "bool",
+        internalType: "bool",
       },
     ],
     outputs: [],
@@ -619,7 +658,7 @@ export default [
     name: "CrossChainCallCanceled",
     inputs: [
       {
-        name: "requestHash",
+        name: "messageId",
         type: "bytes32",
         indexed: true,
         internalType: "bytes32",
@@ -632,7 +671,7 @@ export default [
     name: "CrossChainCallCompleted",
     inputs: [
       {
-        name: "requestHash",
+        name: "messageId",
         type: "bytes32",
         indexed: true,
         internalType: "bytes32",
@@ -651,7 +690,7 @@ export default [
     name: "MessagePosted",
     inputs: [
       {
-        name: "outboxId",
+        name: "messageId",
         type: "bytes32",
         indexed: true,
         internalType: "bytes32",
@@ -685,12 +724,6 @@ export default [
         type: "bytes",
         indexed: false,
         internalType: "bytes",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
       },
       {
         name: "attributes",
@@ -730,6 +763,17 @@ export default [
   },
   {
     type: "error",
+    name: "DuplicateAttribute",
+    inputs: [
+      {
+        name: "selector",
+        type: "bytes4",
+        internalType: "bytes4",
+      },
+    ],
+  },
+  {
+    type: "error",
     name: "ExpiryTooSoon",
     inputs: [],
   },
@@ -752,6 +796,11 @@ export default [
   {
     type: "error",
     name: "InvalidNonce",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidReceiver",
     inputs: [],
   },
   {

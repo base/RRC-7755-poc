@@ -7,6 +7,11 @@ export default [
         type: "address",
         internalType: "address",
       },
+      {
+        name: "inbox",
+        type: "address",
+        internalType: "address",
+      },
     ],
     stateMutability: "payable",
   },
@@ -23,6 +28,19 @@ export default [
         name: "",
         type: "address",
         internalType: "contract IEntryPoint",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "INBOX",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IInbox",
       },
     ],
     stateMutability: "view",
@@ -142,32 +160,6 @@ export default [
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "inbox",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "contract IInbox",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "initialize",
-    inputs: [
-      {
-        name: "inbox_",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -426,11 +418,6 @@ export default [
       },
     ],
     anonymous: false,
-  },
-  {
-    type: "error",
-    name: "AlreadyInitialized",
-    inputs: [],
   },
   {
     type: "error",
