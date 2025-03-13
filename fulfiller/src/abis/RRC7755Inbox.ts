@@ -11,6 +11,10 @@ export default [
     stateMutability: "nonpayable",
   },
   {
+    type: "receive",
+    stateMutability: "payable",
+  },
+  {
     type: "function",
     name: "PAYMASTER",
     inputs: [],
@@ -61,7 +65,7 @@ export default [
     name: "getFulfillmentInfo",
     inputs: [
       {
-        name: "requestHash",
+        name: "messageId",
         type: "bytes32",
         internalType: "bytes32",
       },
@@ -89,7 +93,7 @@ export default [
   },
   {
     type: "function",
-    name: "getRequestId",
+    name: "getMessageId",
     inputs: [
       {
         name: "sourceChain",
@@ -154,7 +158,7 @@ export default [
     name: "CallFulfilled",
     inputs: [
       {
-        name: "requestHash",
+        name: "messageId",
         type: "bytes32",
         indexed: true,
         internalType: "bytes32",
@@ -191,24 +195,19 @@ export default [
   },
   {
     type: "error",
-    name: "InvalidCaller",
-    inputs: [],
+    name: "DuplicateAttribute",
+    inputs: [
+      {
+        name: "selector",
+        type: "bytes4",
+        internalType: "bytes4",
+      },
+    ],
   },
   {
     type: "error",
-    name: "InvalidValue",
-    inputs: [
-      {
-        name: "expected",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "actual",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    name: "InvalidCaller",
+    inputs: [],
   },
   {
     type: "error",
