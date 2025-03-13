@@ -15,6 +15,9 @@ contract RRC7755OutboxToOPStack is RRC7755Outbox {
     using OPStackProver for bytes;
     using GlobalTypes for bytes32;
 
+    /// @notice The selector for the L2 Oracle Storage Key attribute
+    bytes4 internal constant _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR = 0x0f786369; // L2OracleStorageKey(bytes32)
+
     /// @notice Validates storage proofs and verifies fulfillment
     ///
     /// @custom:reverts If storage proof invalid.
@@ -34,10 +37,12 @@ contract RRC7755OutboxToOPStack is RRC7755Outbox {
         address caller
     ) internal view override {
         bytes calldata l2OracleAttribute = _locateAttribute(attributes, _L2_ORACLE_ATTRIBUTE_SELECTOR);
-        address l2Oracle = abi.decode(l2OracleAttribute[4:], (address));
+        bytes calldata l2OracleStorageKeyAttribute =
+            _locateAttribute(attributes, _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR);
         bytes memory inboxContractStorageValue = proof.validate(
             OPStackProver.Target({
-                l1Address: l2Oracle,
+                l1Address: abi.decode(l2OracleAttribute[4:], (address)),
+                l1StorageKey: abi.encode(abi.decode(l2OracleStorageKeyAttribute[4:], (bytes32))),
                 l2Address: inbox.bytes32ToAddress(),
                 l2StorageKey: inboxContractStorageKey
             })
@@ -52,18 +57,19 @@ contract RRC7755OutboxToOPStack is RRC7755Outbox {
 
     /// @notice Returns the minimum amount of time before a request can expire
     function _minExpiryTime(uint256) internal pure override returns (uint256) {
-        return 8 days;
+        return 14 days;
     }
 
     function _getRequiredAttributes(bool requireInbox) internal pure override returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 6 : 5);
+        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 7 : 6);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _L2_ORACLE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[4] = _DELAY_ATTRIBUTE_SELECTOR;
+        requiredSelectors[5] = _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR;
         if (requireInbox) {
-            requiredSelectors[5] = _INBOX_ATTRIBUTE_SELECTOR;
+            requiredSelectors[6] = _INBOX_ATTRIBUTE_SELECTOR;
         }
         return requiredSelectors;
     }

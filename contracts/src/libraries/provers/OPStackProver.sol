@@ -17,6 +17,8 @@ library OPStackProver {
     struct Target {
         /// @dev The address of the L1 contract to validate. Should be Optimism's AnchorStateRegistry contract
         address l1Address;
+        /// @dev The storage key on L1 to validate.
+        bytes l1StorageKey;
         /// @dev The address of the L2 contract to validate.
         address l2Address;
         /// @dev The storage key on L2 to validate.
@@ -39,10 +41,6 @@ library OPStackProver {
         ///      chain
         StateValidator.AccountProofParameters dstL2AccountProofParams;
     }
-
-    /// @notice The storage key on L1 to validate
-    bytes private constant _L1_STORAGE_KEY =
-        abi.encode(0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49);
 
     /// @notice This error is thrown when verification of the authenticity of the l2Oracle for the destination L2 chain
     ///         on Eth mainnet fails
@@ -67,7 +65,7 @@ library OPStackProver {
         RRC7755Proof memory data = abi.decode(proof, (RRC7755Proof));
 
         // Set the expected storage key for the L1 storage slot
-        data.dstL2StateRootProofParams.storageKey = _L1_STORAGE_KEY;
+        data.dstL2StateRootProofParams.storageKey = target.l1StorageKey;
         // Set the expected storage key for the destination L2 storage slot
         data.dstL2AccountProofParams.storageKey = target.l2StorageKey;
 
