@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOperation.sol";
 
 import {GlobalTypes} from "../src/libraries/GlobalTypes.sol";
+import {RRC7755Base} from "../src/RRC7755Base.sol";
 import {RRC7755Outbox} from "../src/RRC7755Outbox.sol";
 
 import {MockOutbox} from "./mocks/MockOutbox.sol";
@@ -45,6 +46,27 @@ contract RRC7755OutboxTest is BaseTest {
         _setUp();
         outbox = new MockOutbox();
         approveAddr = address(outbox);
+    }
+
+    function test_getOptionalAttributes() external view {
+        bytes4[] memory optionalAttributes = outbox.getOptionalAttributes();
+        assertEq(optionalAttributes.length, 3);
+        assertEq(optionalAttributes[0], _PRECHECK_ATTRIBUTE_SELECTOR);
+        assertEq(optionalAttributes[1], _MAGIC_SPEND_REQUEST_SELECTOR);
+        assertEq(optionalAttributes[2], _INBOX_ATTRIBUTE_SELECTOR);
+    }
+
+    function test_sendMessage_reverts_ifDuplicateOptionalAttribute(uint256 rewardAmount)
+        external
+        fundAlice(rewardAmount)
+    {
+        TestMessage memory m = _initMessage(rewardAmount, false);
+        m.attributes = _addAttribute(m.attributes, _PRECHECK_ATTRIBUTE_SELECTOR);
+        m.attributes = _addAttribute(m.attributes, _PRECHECK_ATTRIBUTE_SELECTOR);
+
+        vm.prank(ALICE);
+        vm.expectRevert(abi.encodeWithSelector(RRC7755Base.DuplicateAttribute.selector, _PRECHECK_ATTRIBUTE_SELECTOR));
+        outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
     function test_sendMessage_incrementsNonce(uint256 rewardAmount) external fundAlice(rewardAmount) {
