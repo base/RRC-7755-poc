@@ -47,4 +47,11 @@ contract SSZTest is Test {
         vm.expectRevert(0x1b6661c3);
         ssz.verifyProof(new bytes32[](0), root, leaf, 2);
     }
+
+    function test_verifyProof_reverts_sha256CallFailed() public {
+        // Simulate a chain without the sha256 precompile by making the staticcall fail
+        vm.mockCallRevert(address(0x02), abi.encode(), "");
+        vm.expectRevert(0xcd51ef01); // Sha256CallFailed error selector
+        ssz.verifyProof(proof, root, leaf, index);
+    }
 }
