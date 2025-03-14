@@ -110,6 +110,22 @@ contract RRC7755OutboxTest is BaseTest {
         outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
     }
 
+    function test_sendMessage_reverts_ifInvalidSourceChain(uint256 rewardAmount) external fundAlice(rewardAmount) {
+        TestMessage memory m = _initUserOpMessageWithInvalidSourceChain(rewardAmount);
+
+        vm.prank(ALICE);
+        vm.expectRevert(RRC7755Outbox.InvalidSourceChain.selector);
+        outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
+    }
+
+    function test_sendMessage_reverts_ifInvalidSender(uint256 rewardAmount) external fundAlice(rewardAmount) {
+        TestMessage memory m = _initUserOpMessageWithInvalidSender(rewardAmount);
+
+        vm.prank(ALICE);
+        vm.expectRevert(RRC7755Outbox.InvalidSender.selector);
+        outbox.sendMessage(m.destinationChain, m.receiver, m.payload, m.attributes);
+    }
+
     function test_sendMessage_setMetadata_erc20Reward(uint256 rewardAmount) external fundAlice(rewardAmount) {
         TestMessage memory m = _initMessage(rewardAmount, false);
 
@@ -686,7 +702,7 @@ contract RRC7755OutboxTest is BaseTest {
     function _initUserOpMessage(uint256 rewardAmount) private view returns (TestMessage memory) {
         bytes32 destinationChain = bytes32(block.chainid);
         bytes32 sender = address(outbox).addressToBytes32();
-        bytes[] memory attributes = new bytes[](6);
+        bytes[] memory attributes = new bytes[](7);
 
         attributes[0] =
             abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
@@ -696,6 +712,87 @@ contract RRC7755OutboxTest is BaseTest {
         attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
         attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
         attributes[5] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, _NATIVE_ASSET, 0.0001 ether);
+        attributes[6] = abi.encodeWithSelector(
+            _SOURCE_CHAIN_ATTRIBUTE_SELECTOR, bytes32(block.chainid), address(outbox).addressToBytes32()
+        );
+
+        PackedUserOperation memory userOp = PackedUserOperation({
+            sender: address(0),
+            nonce: 1,
+            initCode: "",
+            callData: "",
+            accountGasLimits: 0,
+            preVerificationGas: 0,
+            gasFees: 0,
+            paymasterAndData: _encodePaymasterAndData(address(outbox), attributes),
+            signature: ""
+        });
+
+        return TestMessage({
+            sourceChain: bytes32(block.chainid),
+            destinationChain: destinationChain,
+            sender: sender,
+            receiver: _EXPECTED_ENTRY_POINT,
+            userOp: userOp,
+            payload: abi.encode(userOp),
+            attributes: new bytes[](0),
+            userOpAttributes: attributes
+        });
+    }
+
+    function _initUserOpMessageWithInvalidSourceChain(uint256 rewardAmount) private view returns (TestMessage memory) {
+        bytes32 destinationChain = bytes32(block.chainid);
+        bytes32 sender = address(outbox).addressToBytes32();
+        bytes[] memory attributes = new bytes[](7);
+
+        attributes[0] =
+            abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
+
+        attributes = _setDelay(attributes, 10, block.timestamp + 11);
+        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
+        attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
+        attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
+        attributes[5] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, _NATIVE_ASSET, 0.0001 ether);
+        attributes[6] = abi.encodeWithSelector(_SOURCE_CHAIN_ATTRIBUTE_SELECTOR, 1, address(outbox).addressToBytes32());
+
+        PackedUserOperation memory userOp = PackedUserOperation({
+            sender: address(0),
+            nonce: 1,
+            initCode: "",
+            callData: "",
+            accountGasLimits: 0,
+            preVerificationGas: 0,
+            gasFees: 0,
+            paymasterAndData: _encodePaymasterAndData(address(outbox), attributes),
+            signature: ""
+        });
+
+        return TestMessage({
+            sourceChain: bytes32(block.chainid),
+            destinationChain: destinationChain,
+            sender: sender,
+            receiver: _EXPECTED_ENTRY_POINT,
+            userOp: userOp,
+            payload: abi.encode(userOp),
+            attributes: new bytes[](0),
+            userOpAttributes: attributes
+        });
+    }
+
+    function _initUserOpMessageWithInvalidSender(uint256 rewardAmount) private view returns (TestMessage memory) {
+        bytes32 destinationChain = bytes32(block.chainid);
+        bytes32 sender = address(outbox).addressToBytes32();
+        bytes[] memory attributes = new bytes[](7);
+
+        attributes[0] =
+            abi.encodeWithSelector(_REWARD_ATTRIBUTE_SELECTOR, address(mockErc20).addressToBytes32(), rewardAmount);
+
+        attributes = _setDelay(attributes, 10, block.timestamp + 11);
+        attributes[2] = abi.encodeWithSelector(_NONCE_ATTRIBUTE_SELECTOR, 0);
+        attributes[3] = abi.encodeWithSelector(_REQUESTER_ATTRIBUTE_SELECTOR, ALICE.addressToBytes32());
+        attributes[4] = abi.encodeWithSelector(_INBOX_ATTRIBUTE_SELECTOR, address(outbox).addressToBytes32());
+        attributes[5] = abi.encodeWithSelector(_MAGIC_SPEND_REQUEST_SELECTOR, _NATIVE_ASSET, 0.0001 ether);
+        attributes[6] = abi.encodeWithSelector(_SOURCE_CHAIN_ATTRIBUTE_SELECTOR, bytes32(block.chainid), address(this));
 
         PackedUserOperation memory userOp = PackedUserOperation({
             sender: address(0),

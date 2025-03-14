@@ -59,15 +59,16 @@ contract RRC7755OutboxToArbitrum is RRC7755Outbox {
         return 8 days;
     }
 
-    function _getRequiredAttributes(bool requireInbox) internal pure override returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 6 : 5);
+    function _getRequiredAttributes(bool isUserOp) internal pure override returns (bytes4[] memory) {
+        bytes4[] memory requiredSelectors = new bytes4[](isUserOp ? 7 : 5);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _L2_ORACLE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[4] = _DELAY_ATTRIBUTE_SELECTOR;
-        if (requireInbox) {
+        if (isUserOp) {
             requiredSelectors[5] = _INBOX_ATTRIBUTE_SELECTOR;
+            requiredSelectors[6] = _SOURCE_CHAIN_ATTRIBUTE_SELECTOR;
         }
         return requiredSelectors;
     }
