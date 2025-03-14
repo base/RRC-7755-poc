@@ -48,6 +48,8 @@ contract BaseTest is Test, RRC7755Base {
     /// @notice The selector for the shoyuBashi attribute
     bytes4 internal constant _SHOYU_BASHI_ATTRIBUTE_SELECTOR = 0xda07e15d; // shoyuBashi(bytes32)
 
+    bytes4 internal constant _SOURCE_CHAIN_ATTRIBUTE_SELECTOR = 0x10b2cb84;
+
     function _setUp() internal {
         mockErc20 = new ERC20Mock();
 

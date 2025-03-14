@@ -39,11 +39,7 @@ contract UserOpHashiBase is UserOpBase {
         return userOp;
     }
 
-    function _convertAttributes(bytes[] memory attributes, address shoyuBashi)
-        private
-        pure
-        returns (bytes[] memory)
-    {
+    function _convertAttributes(bytes[] memory attributes, address shoyuBashi) private pure returns (bytes[] memory) {
         for (uint256 i; i < attributes.length; i++) {
             if (bytes4(attributes[i]) == _L2_ORACLE_ATTRIBUTE_SELECTOR) {
                 attributes[i] = abi.encodeWithSelector(_SHOYU_BASHI_ATTRIBUTE_SELECTOR, shoyuBashi);

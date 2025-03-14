@@ -43,7 +43,7 @@ contract OPStackOutboxTest is BaseTest {
 
     function test_getRequiredAttributes_userOp() external view {
         bytes4[] memory requiredAttributes = opStackOutbox.getRequiredAttributes(true);
-        assertEq(requiredAttributes.length, 7);
+        assertEq(requiredAttributes.length, 8);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _L2_ORACLE_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[2], _NONCE_ATTRIBUTE_SELECTOR);
@@ -51,6 +51,7 @@ contract OPStackOutboxTest is BaseTest {
         assertEq(requiredAttributes[4], _DELAY_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[5], _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[6], _INBOX_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[7], _SOURCE_CHAIN_ATTRIBUTE_SELECTOR);
     }
 
     function test_sendMessage_opStack_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {

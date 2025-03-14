@@ -17,12 +17,15 @@ contract MockOutbox is RRC7755Outbox {
         address caller
     ) internal view override {}
 
-    function _getRequiredAttributes(bool) internal pure override returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](4);
+    function _getRequiredAttributes(bool isUserOp) internal pure override returns (bytes4[] memory) {
+        bytes4[] memory requiredSelectors = new bytes4[](isUserOp ? 5 : 4);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _DELAY_ATTRIBUTE_SELECTOR;
+        if (isUserOp) {
+            requiredSelectors[4] = _SOURCE_CHAIN_ATTRIBUTE_SELECTOR;
+        }
         return requiredSelectors;
     }
 

@@ -46,6 +46,9 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
     /// @notice The selector for the l2Oracle attribute
     bytes4 internal constant _L2_ORACLE_ATTRIBUTE_SELECTOR = 0x7ff7245a; // l2Oracle(address)
 
+    /// @notice The selector for the source chain attribute
+    bytes4 internal constant _SOURCE_CHAIN_ATTRIBUTE_SELECTOR = 0x10b2cb84; // sourceChain(bytes32,bytes32)
+
     /// @notice A mapping from the keccak256 hash of a message request to its current status
     mapping(bytes32 messageId => CrossChainCallStatus status) private _messageStatus;
 
@@ -145,6 +148,12 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
 
     /// @notice This error is thrown if the receiver for a UserOp request is not the expected entry point
     error InvalidReceiver();
+
+    /// @notice This error is thrown if the specified source chain is incorrect for a UserOp request
+    error InvalidSourceChain();
+
+    /// @notice This error is thrown if the specified sender is not this address for a UserOp request
+    error InvalidSender();
 
     /// @notice Initiates the sending of a 7755 request containing a single message
     ///
@@ -519,6 +528,14 @@ abstract contract RRC7755Outbox is RRC7755Base, NonceManager {
             }
         } else if (selector == _DELAY_ATTRIBUTE_SELECTOR) {
             _handleDelayAttribute(attribute);
+        } else if (selector == _SOURCE_CHAIN_ATTRIBUTE_SELECTOR) {
+            (uint256 sourceChain, address sender) = abi.decode(attribute[4:], (uint256, address));
+            if (sourceChain != uint256(block.chainid)) {
+                revert InvalidSourceChain();
+            }
+            if (sender != address(this)) {
+                revert InvalidSender();
+            }
         }
     }
 

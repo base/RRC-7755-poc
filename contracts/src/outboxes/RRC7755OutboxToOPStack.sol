@@ -61,16 +61,17 @@ contract RRC7755OutboxToOPStack is RRC7755Outbox {
         return 14 days;
     }
 
-    function _getRequiredAttributes(bool requireInbox) internal pure override returns (bytes4[] memory) {
-        bytes4[] memory requiredSelectors = new bytes4[](requireInbox ? 7 : 6);
+    function _getRequiredAttributes(bool isUserOp) internal pure override returns (bytes4[] memory) {
+        bytes4[] memory requiredSelectors = new bytes4[](isUserOp ? 8 : 6);
         requiredSelectors[0] = _REWARD_ATTRIBUTE_SELECTOR;
         requiredSelectors[1] = _L2_ORACLE_ATTRIBUTE_SELECTOR;
         requiredSelectors[2] = _NONCE_ATTRIBUTE_SELECTOR;
         requiredSelectors[3] = _REQUESTER_ATTRIBUTE_SELECTOR;
         requiredSelectors[4] = _DELAY_ATTRIBUTE_SELECTOR;
         requiredSelectors[5] = _L2_ORACLE_STORAGE_KEY_ATTRIBUTE_SELECTOR;
-        if (requireInbox) {
+        if (isUserOp) {
             requiredSelectors[6] = _INBOX_ATTRIBUTE_SELECTOR;
+            requiredSelectors[7] = _SOURCE_CHAIN_ATTRIBUTE_SELECTOR;
         }
         return requiredSelectors;
     }

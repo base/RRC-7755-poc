@@ -40,13 +40,14 @@ contract HashiOutboxTest is BaseTest {
 
     function test_getRequiredAttributes_userOp() external view {
         bytes4[] memory requiredAttributes = hashiOutbox.getRequiredAttributes(true);
-        assertEq(requiredAttributes.length, 6);
+        assertEq(requiredAttributes.length, 7);
         assertEq(requiredAttributes[0], _REWARD_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[1], _NONCE_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[2], _REQUESTER_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[3], _DELAY_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[4], _SHOYU_BASHI_ATTRIBUTE_SELECTOR);
         assertEq(requiredAttributes[5], _INBOX_ATTRIBUTE_SELECTOR);
+        assertEq(requiredAttributes[6], _SOURCE_CHAIN_ATTRIBUTE_SELECTOR);
     }
 
     function test_sendMessage_reverts_ifInvalidCaller(uint256 rewardAmount) external fundAlice(rewardAmount) {
