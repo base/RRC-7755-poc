@@ -17,8 +17,16 @@ contract FromArbitrum is UserOpHashiBase {
 
         uint256 nonce = outbox.getNonce(_REQUESTER);
 
+        Message memory m = Message({
+            outbox: outboxAddr,
+            destinationChainId: destinationChainId,
+            duration: duration,
+            nonce: nonce,
+            isOPStack: false
+        });
+
         (bytes32 destinationChain, bytes32 receiver, bytes memory payload, bytes[] memory attributes) =
-            _initMessage(destinationChainId, duration, nonce, config.shoyuBashi, false);
+            _initMessage(m, config.shoyuBashi);
 
         vm.createSelectFork(config.rpcUrl);
 
