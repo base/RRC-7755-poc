@@ -88,8 +88,3 @@ generate-bindings:
 	@ abigen --abi contracts/out/RRC7755Outbox.sol/RRC7755Outbox.abi.json --pkg rrc_7755_outbox --type RRC7755Outbox --out bindings/rrc_7755_outbox/rrc_7755_outbox.go
 	@ abigen --abi contracts/out/RRC7755Inbox.sol/RRC7755Inbox.abi.json --pkg rrc_7755_inbox --type RRC7755Inbox --out bindings/rrc_7755_inbox/rrc_7755_inbox.go
 	@ abigen --abi contracts/out/Entrypoint.sol/Entrypoint.abi.json --pkg entrypoint --type Entrypoint --out bindings/entrypoint/entrypoint.go
-
-.PHONY: update-contract-addresses
-update-contract-addresses:
-	@ echo "Updating contract addresses..."
-	@ uv run --with pyyaml --with requests transform_addresses.py
