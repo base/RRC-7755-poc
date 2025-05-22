@@ -8,9 +8,9 @@ chain:
     node-url: wss://base-sepolia-rpc.publicnode.com
     node-insecure-skip-verify: true
     outbox-addresses:
-      arbitrum: '0x28f1e951f95433fa285edcb5ec9307294833507a'
-      opstack: '0x8c994c35a64cf87022a684f1d82409cd2b2dc60d'
-      hashi: '0xe386d196764dda840ec5804edcaea01901d50d2c'
+      arbitrum: '0xde9eb27d46ea852838657d2eca50071927e481a0'
+      opstack: '0xaae1f8f896532293d308d5db1936e350b2f1a96c'
+      hashi: '0x2ace63ae507ce340823e705a0c640bedd9026b14'
     l2-oracle: '0x4C8BA32A5DAC2A720bb35CeDB51D6B067D104205'
     l2-oracle-storage-key: '0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49'
     inbox-address: '0xdca0d90ee4ec8014ea3625f361c727720ebc427b'
@@ -20,8 +20,8 @@ chain:
     node-url: wss://sepolia-rollup.arbitrum.io/feed
     node-insecure-skip-verify: true
     outbox-addresses:
-      opstack: '0xb56ac3ecf3a22e9fc330c72abb3fb87dd4b929d4'
-      hashi: '0x849b433cacf926eaf04f3589cf4bc6f0d1c36744'
+      opstack: '0x3542dd26727844524ea7c136c5c38ff8088b30ba'
+      hashi: '0x657c8b8d05001e51b1cdcfc8709537a8963390a4'
     l2-oracle: '0x042B2E6C5E99d4c521bd49beeD5E99651D9B0Cf4'
     l2-oracle-storage-key: '0x0000000000000000000000000000000000000000000000000000000000000076'
     inbox-address: '0xdc50fdbe95e876f31ea5d4aa01040b095e612ebb'

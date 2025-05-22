@@ -10,7 +10,6 @@ import (
 
 	"github.com/base-org/RRC-7755-poc/internal/client"
 	"github.com/base-org/RRC-7755-poc/internal/config"
-	"github.com/base-org/RRC-7755-poc/internal/inbox"
 	"github.com/base-org/RRC-7755-poc/internal/listener"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
@@ -52,23 +51,10 @@ func main() {
 	if err != nil {
 		log.Fatal("initializing outbox listener", zap.Error(err))
 	}
-	go func(){
-		err = outboxListener.Run(ctx)
-		if err != nil {
-			log.Fatal("starting listener", zap.Error(err))
-		}
-		log.Info("outbox listener created successfully")
-	
-	}()
-	// Uncomment to send a test transaction
-	// "github.com/base-org/RRC-7755-poc/internal/inbox"
-	txManager := inbox.NewTransactionSenderManager(clientMgr, cfg, log)
-
-	err = txManager.SendTestTransaction(ctx)
+	err = outboxListener.Run(ctx)
 	if err != nil {
-		log.Fatal("failed to send test transaction", zap.Error(err))
+		log.Fatal("starting listener", zap.Error(err))
 	}
-	log.Info("transaction sender manager initialized successfully")
-	wait := make(chan struct{})
-	<- wait
+	log.Info("outbox listener created successfully")
+
 }
