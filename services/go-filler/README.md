@@ -24,7 +24,7 @@ The Go Filler service is part of the RRC-7755 proof-of-concept implementation. I
 - Send fulfillment to inbox
 
 2. Prover package:
-- Generate proof of fulfillment on arbitrum as a destination chain on devnet
+- Generate proof of fulfillment on arbitrum as a destination chain on devnet (disclaimer: unit tested but not E2E tested onchain)
 
 ### What is not included yet
 
