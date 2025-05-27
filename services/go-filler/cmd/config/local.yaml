@@ -1,0 +1,32 @@
+chain:
+  sepolia:
+    chain-id: 11155111
+    node-url: wss://ethereum-sepolia-rpc.publicnode.com
+    node-insecure-skip-verify: true
+  base-sepolia:
+    chain-id: 84532
+    node-url: wss://base-sepolia-rpc.publicnode.com
+    node-insecure-skip-verify: true
+    outbox-addresses:
+      arbitrum: '0xde9eb27d46ea852838657d2eca50071927e481a0'
+      opstack: '0xaae1f8f896532293d308d5db1936e350b2f1a96c'
+      hashi: '0x2ace63ae507ce340823e705a0c640bedd9026b14'
+    l2-oracle: '0x4C8BA32A5DAC2A720bb35CeDB51D6B067D104205'
+    l2-oracle-storage-key: '0xa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49'
+    inbox-address: '0xdca0d90ee4ec8014ea3625f361c727720ebc427b'
+    entrypoint-address: '0x0000000071727De22E5E9d8BAf0edAc6f37da032'
+  arbitrum-sepolia:
+    chain-id: 421614
+    node-url: wss://sepolia-rollup.arbitrum.io/feed
+    node-insecure-skip-verify: true
+    outbox-addresses:
+      opstack: '0x3542dd26727844524ea7c136c5c38ff8088b30ba'
+      hashi: '0x657c8b8d05001e51b1cdcfc8709537a8963390a4'
+    l2-oracle: '0x042B2E6C5E99d4c521bd49beeD5E99651D9B0Cf4'
+    l2-oracle-storage-key: '0x0000000000000000000000000000000000000000000000000000000000000076'
+    inbox-address: '0xdc50fdbe95e876f31ea5d4aa01040b095e612ebb'
+    entrypoint-address: '0x0000000071727De22E5E9d8BAf0edAc6f37da032'
+wallets:
+  from-address: env://WALLET_ADDRESS
+  private-key: env://WALLET_PRIVATE_KEY
+  recipient-address: env://RECIPIENT_WALLET_ADDRESS
